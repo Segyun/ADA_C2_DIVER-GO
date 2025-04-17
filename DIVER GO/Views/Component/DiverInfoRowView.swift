@@ -2,37 +2,24 @@
 //  DiverInfoRowView.swift
 //  DIVER GO
 //
-//  Created by 정희균 on 4/15/25.
+//  Created by 정희균 on 4/16/25.
 //
 
 import SwiftUI
 
 struct DiverInfoRowView: View {
-    @Binding var diverInfo: DiverInfo
-    @State private var isEditing = false
-    @State private var tempTitle = ""
+    let diverInfo: DiverInfo
     
     var body: some View {
         HStack {
             Text(diverInfo.title)
-                .onTapGesture {
-                    if !diverInfo.isRequired {
-                        tempTitle = diverInfo.title
-                        isEditing = true
-                    }
-                }
-            TextField(diverInfo.title, text: $diverInfo.description)
-                .multilineTextAlignment(.trailing)
-        }
-        .alert("제목을 수정하시겠습니까?", isPresented: $isEditing) {
-            TextField("제목을 입력하세요.", text: $tempTitle)
-            Button("취소", role: .cancel) {
-                isEditing = false
+            Spacer()
+            if diverInfo.description.isEmpty {
+                Text(diverInfo.title)
+                    .foregroundStyle(.tertiary)
+            } else {
+                Text(diverInfo.description)
             }
-            Button("확인") {
-                diverInfo.title = tempTitle
-            }
-            .disabled(tempTitle.isEmpty)
         }
     }
 }
@@ -44,6 +31,7 @@ struct DiverInfoRowView: View {
     )
     
     return Form {
-        DiverInfoRowView(diverInfo: $diverInfo)
+        DiverInfoRowView(diverInfo: diverInfo)
     }
+    .preferredColorScheme(.dark)
 }

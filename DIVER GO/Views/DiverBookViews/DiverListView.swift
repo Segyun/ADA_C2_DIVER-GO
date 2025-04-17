@@ -9,7 +9,9 @@ import SwiftUI
 
 struct DiverListView: View {
     @State private var divers = Diver.builtins + Diver.builtins + Diver.builtins
-
+    @State private var selectedDiver: Diver?
+    @ObservedObject private var diverStore = DiverStore.shared
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -19,9 +21,14 @@ struct DiverListView: View {
                 VStack {
                     VStack {
                         ProfileImageView()
-                        Text("Main Diver")
+                        Text(diverStore.mainDiver.nickname)
+                            .lineLimit(1, reservesSpace: true)
                     }
                     .frame(height: 150)
+                    .onTapGesture {
+                        selectedDiver = diverStore.mainDiver
+                    }
+                    
                     ZStack {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(.C_3)
@@ -39,6 +46,9 @@ struct DiverListView: View {
                                             .minimumScaleFactor(0.5)
                                     }
                                     .padding()
+                                    .onTapGesture {
+                                        selectedDiver = diver
+                                    }
                                 }
                             }
                         }
@@ -57,11 +67,17 @@ struct DiverListView: View {
                     }
                 }
             }
+            .sheet(item: $selectedDiver) { diver in
+                DiverDetailView(
+                    diver: diver.id == diverStore.mainDiver.id ? $diverStore
+                        .mainDiver : .constant(diver)
+                )
+            }
         }
-        .preferredColorScheme(.dark)
     }
 }
 
 #Preview {
     DiverListView()
+        .preferredColorScheme(.dark)
 }

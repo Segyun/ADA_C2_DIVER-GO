@@ -123,7 +123,7 @@ struct OnboardingView: View {
                         )
                     ) {
                         ForEach($diverStore.mainDiver.infoList) { info in
-                            DiverInfoRowView(diverInfo: info)
+                            DiverInfoRowEditView(diverInfo: info)
                                 .deleteDisabled(
                                     info.isRequired.wrappedValue
                                 )
