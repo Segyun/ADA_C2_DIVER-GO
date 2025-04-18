@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct DiverListView: View {
-    @State private var divers = Diver.builtins + Diver.builtins + Diver.builtins
-    @State private var selectedDiver: Diver?
     @ObservedObject private var diverStore = DiverStore.shared
+    
+    @State private var isEditing = false
+    @State private var isShowingAlert = false
+    @State private var deletingDiver: Diver?
     
     var body: some View {
         NavigationStack {
@@ -20,14 +22,22 @@ struct DiverListView: View {
 
                 VStack {
                     VStack {
-                        ProfileImageView()
+                        ProfileImageView(
+                            emoji: diverStore.mainDiver.emoji,
+                            strokeColor: diverStore
+                                .getDiverColor(diverStore.mainDiver)
+                        )
+                            .padding(.bottom, 4)
                         Text(diverStore.mainDiver.nickname)
+                            .font(.headline)
                             .lineLimit(1, reservesSpace: true)
+                            .minimumScaleFactor(0.5)
                     }
                     .frame(height: 150)
                     .onTapGesture {
-                        selectedDiver = diverStore.mainDiver
+                        diverStore.selectedDiver = diverStore.mainDiver
                     }
+                    .padding(.top)
                     
                     ZStack {
                         RoundedRectangle(cornerRadius: 10)
@@ -37,17 +47,40 @@ struct DiverListView: View {
                             LazyVGrid(
                                 columns: Array(repeating: GridItem(), count: 3)
                             ) {
-                                ForEach(divers) { diver in
+                                ForEach(diverStore.divers) { diver in
                                     VStack {
-                                        ProfileImageView()
+                                        ZStack {
+                                            ProfileImageView(
+                                                emoji: diver.emoji,
+                                                strokeColor: diverStore
+                                                    .getDiverColor(diver)
+                                            )
                                             .padding(.bottom, 4)
+                                            
+                                            if isEditing {
+                                                Image(systemName: "minus.circle.fill")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 28)
+                                                    .symbolRenderingMode(.multicolor)
+                                                    .foregroundStyle(.red)
+                                                    .offset(x: -32, y: -32)
+                                                    .shadow(radius: 7)
+                                            }
+                                        }
+                                        
                                         Text(diver.nickname)
-                                            .lineLimit(1)
+                                            .lineLimit(1, reservesSpace: true)
                                             .minimumScaleFactor(0.5)
                                     }
                                     .padding()
                                     .onTapGesture {
-                                        selectedDiver = diver
+                                        if isEditing {
+                                            deletingDiver = diver
+                                            isShowingAlert = true
+                                        } else {
+                                            diverStore.selectedDiver = diver
+                                        }
                                     }
                                 }
                             }
@@ -61,23 +94,34 @@ struct DiverListView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-
+                        isEditing.toggle()
                     } label: {
-                        Text("편집")
+                        Text(isEditing ? "완료" : "편집")
                     }
                 }
             }
-            .sheet(item: $selectedDiver) { diver in
+            .sheet(item: $diverStore.selectedDiver) { diver in
                 DiverDetailView(
                     diver: diver.id == diverStore.mainDiver.id ? $diverStore
                         .mainDiver : .constant(diver)
                 )
             }
+            .alert(
+                    "'\(deletingDiver?.nickname ?? "")'을 삭제하시겠습니까?",
+                isPresented: $isShowingAlert) {
+                    Button("삭제", role: .destructive) {
+                        diverStore.deleteDiver(deletingDiver)
+                    }
+                }
         }
     }
 }
 
 #Preview {
-    DiverListView()
+    @Previewable var diverStore = DiverStore.shared
+    diverStore.divers = Diver.builtins + Diver.builtins
+    diverStore.mainDiver = Diver("Lemon")
+    diverStore.mainDiver.emoji = "🍋"
+    return DiverListView()
         .preferredColorScheme(.dark)
 }

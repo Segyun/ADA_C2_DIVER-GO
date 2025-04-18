@@ -5,6 +5,7 @@
 //  Created by 정희균 on 4/16/25.
 //
 
+import MCEmojiPicker
 import SwiftUI
 
 struct DiverDetailView: View {
@@ -38,6 +39,8 @@ struct DiverDetailView: View {
 }
 
 struct DiverDetailReadView: View {
+    @ObservedObject private var diverStore = DiverStore.shared
+
     @Binding var diver: Diver
     @Binding var isEditing: Bool
     var dismiss: () -> Void
@@ -45,11 +48,14 @@ struct DiverDetailReadView: View {
     var body: some View {
         List {
             Section {
-                ProfileImageView()
-                    .frame(maxWidth: .infinity, maxHeight: 150)
+                ProfileImageView(
+                    emoji: diver.emoji,
+                    strokeColor: diverStore.getDiverColor(diver)
+                )
+                .frame(maxWidth: .infinity, maxHeight: 150)
             }
             .listRowBackground(Color.clear)
-            
+
             Section {
                 Text(diver.nickname)
                     .font(.headline)
@@ -63,10 +69,53 @@ struct DiverDetailReadView: View {
                 }
             }
             .listRowBackground(Color.C_3)
+
+            Section {
+                VStack {
+                    if diver.id == diverStore.mainDiver.id {
+                        Text(
+                            "마지막으로 업데이트되고 \(diver.updatedAt.lastDays())일 지났어요."
+                        )
+                        Text(
+                            "처음 생성되고 \(diver.createdAt.lastDays())일 지났어요."
+                        )
+                    } else {
+                        Text(
+                            "마지막으로 만나고 \(diver.updatedAt.lastDays())일 지났어요."
+                        )
+                        Text(
+                            "처음 만나고 \(diver.createdAt.lastDays())일 지났어요."
+                        )
+                    }
+                }
+                .font(.caption)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+            }
+            .foregroundStyle(.secondary)
+            .listRowBackground(Color.clear)
         }
         .scrollContentBackground(.hidden)
         .toolbar {
-            if diver.id == DiverStore.shared.mainDiver.id {
+            if diver.id == diverStore.mainDiver.id {
+                ToolbarItem(placement: .primaryAction) {
+                    ShareLink(
+                        item: diver.toURL(),
+                        preview: SharePreview(
+                            "\(diver.nickname.isEmpty ? "닉네임을 설정해주세요." : diver.nickname)",
+                            image: Image(
+                                uiImage: ImageRenderer(
+                                    content: Text(
+                                        diver.emoji.isEmpty
+                                            ? "🤿" : diver.emoji
+                                    )
+                                    .font(.title)
+                                ).uiImage!
+                            )
+                        )
+                    )
+
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button("편집") {
                         isEditing = true
@@ -87,8 +136,9 @@ struct DiverDetailEditView: View {
     @Binding var isEditing: Bool
 
     @State private var editedDiver: Diver
-    @State private var isAddingNewInfo = false
     @State private var newInfo = DiverInfo()
+    @State private var isAddingNewInfo = false
+    @State private var isEmojiSelecting = false
 
     init(diver: Binding<Diver>, isEditing: Binding<Bool>) {
         self._diver = diver
@@ -99,11 +149,35 @@ struct DiverDetailEditView: View {
     var body: some View {
         List {
             Section {
-                ProfileImageView()
-                    .frame(maxWidth: .infinity, maxHeight: 150)
+                ZStack {
+                    ProfileImageView(emoji: editedDiver.emoji)
+                        .frame(maxWidth: .infinity, maxHeight: 150)
+
+                    Image(systemName: "pencil.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40)
+                        .symbolRenderingMode(.multicolor)
+                        .foregroundStyle(.C_1)
+                        .offset(x: 52, y: 52)
+                        .shadow(radius: 7)
+                }
+                .onTapGesture {
+                    UIApplication.shared.sendAction(
+                        #selector(UIResponder.resignFirstResponder),
+                        to: nil,
+                        from: nil,
+                        for: nil
+                    )
+                    isEmojiSelecting = true
+                }
+                .emojiPicker(
+                    isPresented: $isEmojiSelecting,
+                    selectedEmoji: $editedDiver.emoji
+                )
             }
             .listRowBackground(Color.clear)
-            
+
             Section {
                 TextField("닉네임을 입력해주세요.", text: $editedDiver.nickname)
                     .font(.headline)
@@ -134,8 +208,7 @@ struct DiverDetailEditView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("완료") {
-                    diver.nickname = editedDiver.nickname
-                    diver.infoList = editedDiver.infoList
+                    diver = editedDiver
                     diver.updatedAt = Date()
                     isEditing = false
                 }

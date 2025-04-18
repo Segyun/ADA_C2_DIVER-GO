@@ -7,8 +7,17 @@
 
 import SwiftUI
 
+enum OnboardingState: Int {
+    case required
+    case disappear
+    case completed
+}
+
 struct ContentView: View {
-    @AppStorage("isOnboardingCompleted") var isOnboardingCompleted: Bool = false
+    @ObservedObject private var diverStore = DiverStore.shared
+    @AppStorage("onboardingState") var onboardingState: OnboardingState =
+        .required
+    //    @State private var onboardingState: OnboardingState = .required
 
     init() {
         UITabBar.appearance().backgroundColor = .C_5.withAlphaComponent(0.1)
@@ -16,33 +25,49 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if isOnboardingCompleted {
+            if onboardingState == .required {
+                OnboardingView(onboardingState: $onboardingState)
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .bottom),
+                            removal: .move(edge: .top)
+                        )
+                    )
+            } else if onboardingState == .disappear {
+                Color.C_4
+                    .ignoresSafeArea()
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .bottom),
+                            removal: .opacity
+                        )
+                    )
+            } else if onboardingState == .completed {
                 TabView {
                     Tab("도감", systemImage: "book") {
                         DiverListView()
                     }
                     Tab("미션", systemImage: "list.bullet.clipboard") {
-                        Text("미션")
+                        MissionListView()
                     }
                 }
                 .toolbarBackgroundVisibility(.hidden, for: .tabBar)
-            } else {
-                OnboardingView(isOnboardingCompleted: $isOnboardingCompleted)
+                .transition(.opacity)
             }
         }
-        .preferredColorScheme(.dark)
-        .onChange(of: DiverStore.shared.divers) {
-            DiverStore.shared.saveData()
+        .onChange(of: diverStore.divers) {
+            diverStore.saveData()
         }
-        .onChange(of: DiverStore.shared.mainDiver) {
-            DiverStore.shared.saveData()
+        .onChange(of: diverStore.mainDiver) {
+            diverStore.saveData()
         }
         .task {
-            DiverStore.shared.loadData()
+            diverStore.loadData()
         }
     }
 }
 
 #Preview {
     ContentView()
+        .preferredColorScheme(.dark)
 }

@@ -5,13 +5,16 @@
 //  Created by 정희균 on 4/14/25.
 //
 
+import MCEmojiPicker
 import SwiftUI
 
 struct OnboardingView: View {
+    @Binding var onboardingState: OnboardingState
+    
     private let backgroundColors: [[Color]] = [[.C_2, .C_3], [.C_3, .C_4]]
-    @State private var currentPage = 0
+    
     @ObservedObject private var diverStore = DiverStore.shared
-    @Binding var isOnboardingCompleted: Bool
+    @State private var currentPage = 0
 
     var body: some View {
         ZStack {
@@ -46,7 +49,13 @@ struct OnboardingView: View {
                         for: nil
                     )
                     if currentPage == 2 {
-                        isOnboardingCompleted = true
+                        withAnimation {
+                            onboardingState = .disappear
+                        } completion: {
+                            withAnimation {
+                                onboardingState = .completed
+                            }
+                        }
                     } else {
                         withAnimation {
                             currentPage = (currentPage + 1) % 4
@@ -65,6 +74,8 @@ struct OnboardingView: View {
         .preferredColorScheme(.dark)
     }
 
+    // MARK: Background View
+    
     private var BackgroundGradient: some View {
         Group {
             switch currentPage {
@@ -82,6 +93,10 @@ struct OnboardingView: View {
         .animation(.default, value: currentPage)
         .ignoresSafeArea()
     }
+    
+    // MARK: First Onboarding View
+
+    @State private var isEmojiSelecting = false
 
     private var FirstOnboardingView: some View {
         VStack {
@@ -90,9 +105,36 @@ struct OnboardingView: View {
                 .bold()
                 .padding()
             VStack {
-                ProfileImageView()
+                ZStack {
+                    ProfileImageView(
+                        emoji: diverStore.mainDiver.emoji,
+                        strokeColor: .C_1
+                    )
                     .frame(width: 150)
                     .padding(.bottom)
+
+                    Image(systemName: "pencil.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40)
+                        .symbolRenderingMode(.multicolor)
+                        .foregroundStyle(.C_1)
+                        .offset(x: 48, y: 48)
+                        .shadow(radius: 7)
+                }
+                .onTapGesture {
+                    UIApplication.shared.sendAction(
+                        #selector(UIResponder.resignFirstResponder),
+                        to: nil,
+                        from: nil,
+                        for: nil
+                    )
+                    isEmojiSelecting = true
+                }
+                .emojiPicker(
+                    isPresented: $isEmojiSelecting,
+                    selectedEmoji: $diverStore.mainDiver.emoji
+                )
                 TextField("닉네임을 입력해주세요.", text: $diverStore.mainDiver.nickname)
                     .multilineTextAlignment(.center)
                     .padding(8)
@@ -106,6 +148,8 @@ struct OnboardingView: View {
         .padding()
     }
 
+    // MARK: Second Onboarding View
+    
     @State private var newInfo = DiverInfo()
     @State private var isAddingNewInfo = false
 
@@ -170,6 +214,8 @@ struct OnboardingView: View {
             .disabled(newInfo.title.isEmpty)
         }
     }
+    
+    // MARK: Third Onboarding View
 
     private var ThirdOnboardingView: some View {
         VStack {
@@ -183,7 +229,7 @@ struct OnboardingView: View {
 }
 
 #Preview {
-    @Previewable @State var isOnboardingCompleted = false
-    
-    return OnboardingView(isOnboardingCompleted: $isOnboardingCompleted)
+    @Previewable @State var onboardingState: OnboardingState = .required
+
+    return OnboardingView(onboardingState: $onboardingState)
 }
