@@ -6,9 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct DiverListView: View {
-    @ObservedObject private var diverStore = DiverStore.shared
+    @Binding var mainDiver: Diver
+    @Binding var selectedDiver: Diver?
+    
+    @Environment(\.modelContext) private var modelContext
+    @Query private var divers: [Diver]
     
     @State private var isEditing = false
     @State private var isShowingAlert = false
@@ -23,19 +28,18 @@ struct DiverListView: View {
                 VStack {
                     VStack {
                         ProfileImageView(
-                            emoji: diverStore.mainDiver.emoji,
-                            strokeColor: diverStore
-                                .getDiverColor(diverStore.mainDiver)
+                            emoji: mainDiver.emoji,
+                            strokeColor: mainDiver.getStrokeColor(mainDiver)
                         )
                             .padding(.bottom, 4)
-                        Text(diverStore.mainDiver.nickname)
+                        Text(mainDiver.nickname)
                             .font(.headline)
                             .lineLimit(1, reservesSpace: true)
                             .minimumScaleFactor(0.5)
                     }
                     .frame(height: 150)
                     .onTapGesture {
-                        diverStore.selectedDiver = diverStore.mainDiver
+                        selectedDiver = mainDiver
                     }
                     .padding(.top)
                     
@@ -47,39 +51,41 @@ struct DiverListView: View {
                             LazyVGrid(
                                 columns: Array(repeating: GridItem(), count: 3)
                             ) {
-                                ForEach(diverStore.divers) { diver in
-                                    VStack {
-                                        ZStack {
-                                            ProfileImageView(
-                                                emoji: diver.emoji,
-                                                strokeColor: diverStore
-                                                    .getDiverColor(diver)
-                                            )
-                                            .padding(.bottom, 4)
-                                            
-                                            if isEditing {
-                                                Image(systemName: "minus.circle.fill")
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 28)
-                                                    .symbolRenderingMode(.multicolor)
-                                                    .foregroundStyle(.red)
-                                                    .offset(x: -32, y: -32)
-                                                    .shadow(radius: 7)
+                                ForEach(divers) { diver in
+                                    if diver.id != mainDiver.id {
+                                        VStack {
+                                            ZStack {
+                                                ProfileImageView(
+                                                    emoji: diver.emoji,
+                                                    strokeColor: diver
+                                                        .getStrokeColor(mainDiver)
+                                                )
+                                                .padding(.bottom, 4)
+                                                
+                                                if isEditing {
+                                                    Image(systemName: "minus.circle.fill")
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 28)
+                                                        .symbolRenderingMode(.multicolor)
+                                                        .foregroundStyle(.red)
+                                                        .offset(x: -32, y: -32)
+                                                        .shadow(radius: 7)
+                                                }
                                             }
+                                            
+                                            Text(diver.nickname)
+                                                .lineLimit(1, reservesSpace: true)
+                                                .minimumScaleFactor(0.5)
                                         }
-                                        
-                                        Text(diver.nickname)
-                                            .lineLimit(1, reservesSpace: true)
-                                            .minimumScaleFactor(0.5)
-                                    }
-                                    .padding()
-                                    .onTapGesture {
-                                        if isEditing {
-                                            deletingDiver = diver
-                                            isShowingAlert = true
-                                        } else {
-                                            diverStore.selectedDiver = diver
+                                        .padding()
+                                        .onTapGesture {
+                                            if isEditing {
+                                                deletingDiver = diver
+                                                isShowingAlert = true
+                                            } else {
+                                                selectedDiver = diver
+                                            }
                                         }
                                     }
                                 }
@@ -100,17 +106,19 @@ struct DiverListView: View {
                     }
                 }
             }
-            .sheet(item: $diverStore.selectedDiver) { diver in
+            .sheet(item: $selectedDiver) { diver in
                 DiverDetailView(
-                    diver: diver.id == diverStore.mainDiver.id ? $diverStore
-                        .mainDiver : .constant(diver)
+                    mainDiver: $mainDiver,
+                    diver: diver.id == mainDiver.id ? $mainDiver : .constant(diver)
                 )
             }
             .alert(
                     "'\(deletingDiver?.nickname ?? "")'을 삭제하시겠습니까?",
                 isPresented: $isShowingAlert) {
                     Button("삭제", role: .destructive) {
-                        diverStore.deleteDiver(deletingDiver)
+                        if let deletingDiver {
+                            modelContext.delete(deletingDiver)
+                        }
                     }
                 }
         }
@@ -118,10 +126,20 @@ struct DiverListView: View {
 }
 
 #Preview {
-    @Previewable var diverStore = DiverStore.shared
-    diverStore.divers = Diver.builtins + Diver.builtins
-    diverStore.mainDiver = Diver("Lemon")
-    diverStore.mainDiver.emoji = "🍋"
-    return DiverListView()
-        .preferredColorScheme(.dark)
+    @Previewable @State var mainDiver = Diver("", isDefaultInfo: true)
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Diver.self, configurations: config)
+    container.mainContext.insert(mainDiver)
+    
+    for i in 1..<10 {
+        let diver = Diver("Test \(i)", isDefaultInfo: true)
+        container.mainContext.insert(diver)
+    }
+
+    return DiverListView(
+        mainDiver: $mainDiver,
+        selectedDiver: .constant(nil)
+    )
+    .preferredColorScheme(.dark)
+    .modelContainer(container)
 }

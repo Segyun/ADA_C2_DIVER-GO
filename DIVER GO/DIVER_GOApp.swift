@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct DIVER_GOApp: App {
@@ -14,5 +15,6 @@ struct DIVER_GOApp: App {
             ContentView()
                 .preferredColorScheme(.dark)
         }
+        .modelContainer(for: Diver.self)
     }
 }

@@ -5,15 +5,16 @@
 //  Created by 정희균 on 4/14/25.
 //
 
-import MCEmojiPicker
 import SwiftUI
+import SwiftData
+import MCEmojiPicker
 
 struct OnboardingView: View {
+    @Binding var mainDiver: Diver
     @Binding var onboardingState: OnboardingState
     
     private let backgroundColors: [[Color]] = [[.C_2, .C_3], [.C_3, .C_4]]
     
-    @ObservedObject private var diverStore = DiverStore.shared
     @State private var currentPage = 0
 
     var body: some View {
@@ -68,7 +69,7 @@ struct OnboardingView: View {
                 }
                 .padding()
                 .buttonStyle(.borderedProminent)
-                .disabled(diverStore.mainDiver.nickname.isEmpty)
+                .disabled(mainDiver.nickname.isEmpty)
             }
         }
         .preferredColorScheme(.dark)
@@ -107,7 +108,7 @@ struct OnboardingView: View {
             VStack {
                 ZStack {
                     ProfileImageView(
-                        emoji: diverStore.mainDiver.emoji,
+                        emoji: mainDiver.emoji,
                         strokeColor: .C_1
                     )
                     .frame(width: 150)
@@ -133,9 +134,9 @@ struct OnboardingView: View {
                 }
                 .emojiPicker(
                     isPresented: $isEmojiSelecting,
-                    selectedEmoji: $diverStore.mainDiver.emoji
+                    selectedEmoji: $mainDiver.emoji
                 )
-                TextField("닉네임을 입력해주세요.", text: $diverStore.mainDiver.nickname)
+                TextField("닉네임을 입력해주세요.", text: $mainDiver.nickname)
                     .multilineTextAlignment(.center)
                     .padding(8)
                     .background {
@@ -155,7 +156,7 @@ struct OnboardingView: View {
 
     private var SecondOnboardingView: some View {
         VStack {
-            Text("반가워요, \(diverStore.mainDiver.nickname)!")
+            Text("반가워요, \(mainDiver.nickname)!")
                 .font(.largeTitle)
                 .bold()
                 .padding()
@@ -163,17 +164,17 @@ struct OnboardingView: View {
                 List {
                     Section(
                         header: Text(
-                            "\(diverStore.mainDiver.nickname)에 대해 알려주세요."
+                            "\(mainDiver.nickname)에 대해 알려주세요."
                         )
                     ) {
-                        ForEach($diverStore.mainDiver.infoList) { info in
+                        ForEach($mainDiver.infoList) { info in
                             DiverInfoRowEditView(diverInfo: info)
                                 .deleteDisabled(
                                     info.isRequired.wrappedValue
                                 )
                         }
                         .onDelete { indexSet in
-                            diverStore.mainDiver.infoList
+                            mainDiver.infoList
                                 .remove(atOffsets: indexSet)
                         }
                     }
@@ -207,7 +208,7 @@ struct OnboardingView: View {
             }
             Button("추가하기") {
                 withAnimation {
-                    diverStore.mainDiver.infoList.append(newInfo)
+                    mainDiver.infoList.append(newInfo)
                 }
                 newInfo = DiverInfo()
             }
@@ -229,7 +230,20 @@ struct OnboardingView: View {
 }
 
 #Preview {
-    @Previewable @State var onboardingState: OnboardingState = .required
+    @Previewable @State var mainDiver = Diver("", isDefaultInfo: true)
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Diver.self, configurations: config)
+    container.mainContext.insert(mainDiver)
+    
+    for i in 1..<10 {
+        let diver = Diver("Test \(i)", isDefaultInfo: true)
+        container.mainContext.insert(diver)
+    }
 
-    return OnboardingView(onboardingState: $onboardingState)
+    return OnboardingView(
+        mainDiver: $mainDiver,
+        onboardingState: .constant(.disappear)
+    )
+    .preferredColorScheme(.dark)
+    .modelContainer(container)
 }

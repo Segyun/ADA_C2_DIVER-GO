@@ -9,9 +9,11 @@ import MCEmojiPicker
 import SwiftUI
 
 struct DiverDetailView: View {
+    @Binding var mainDiver: Diver
+    @Binding var diver: Diver
+
     @Environment(\.dismiss) private var dismiss
     @State private var isEditing = false
-    @Binding var diver: Diver
 
     var body: some View {
         NavigationView {
@@ -22,7 +24,11 @@ struct DiverDetailView: View {
                 if isEditing == true {
                     DiverDetailEditView(diver: $diver, isEditing: $isEditing)
                 } else {
-                    DiverDetailReadView(diver: $diver, isEditing: $isEditing) {
+                    DiverDetailReadView(
+                        mainDiver: $mainDiver,
+                        diver: $diver,
+                        isEditing: $isEditing
+                    ) {
                         dismiss()
                     }
                 }
@@ -32,15 +38,17 @@ struct DiverDetailView: View {
 }
 
 #Preview {
-    @Previewable @ObservedObject var diverStore = DiverStore.shared
+    @Previewable @State var mainDiver = Diver("", isDefaultInfo: true)
 
-    return DiverDetailView(diver: $diverStore.mainDiver)
-        .preferredColorScheme(.dark)
+    return DiverDetailView(
+        mainDiver: $mainDiver,
+        diver: $mainDiver
+    )
+    .preferredColorScheme(.dark)
 }
 
 struct DiverDetailReadView: View {
-    @ObservedObject private var diverStore = DiverStore.shared
-
+    @Binding var mainDiver: Diver
     @Binding var diver: Diver
     @Binding var isEditing: Bool
     var dismiss: () -> Void
@@ -50,7 +58,7 @@ struct DiverDetailReadView: View {
             Section {
                 ProfileImageView(
                     emoji: diver.emoji,
-                    strokeColor: diverStore.getDiverColor(diver)
+                    strokeColor: diver.getStrokeColor(mainDiver)
                 )
                 .frame(maxWidth: .infinity, maxHeight: 150)
             }
@@ -72,7 +80,7 @@ struct DiverDetailReadView: View {
 
             Section {
                 VStack {
-                    if diver.id == diverStore.mainDiver.id {
+                    if diver.id == mainDiver.id {
                         Text(
                             "마지막으로 업데이트되고 \(diver.updatedAt.lastDays())일 지났어요."
                         )
@@ -97,7 +105,7 @@ struct DiverDetailReadView: View {
         }
         .scrollContentBackground(.hidden)
         .toolbar {
-            if diver.id == diverStore.mainDiver.id {
+            if diver.id == mainDiver.id {
                 ToolbarItem(placement: .primaryAction) {
                     ShareLink(
                         item: diver.toURL(),
