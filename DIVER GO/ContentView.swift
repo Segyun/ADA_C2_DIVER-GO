@@ -15,13 +15,14 @@ enum OnboardingState: Int {
 
 struct ContentView: View {
     @ObservedObject private var diverStore = DiverStore.shared
-    @AppStorage("onboardingState") var onboardingState: OnboardingState =
-        .required
     //    @State private var onboardingState: OnboardingState = .required
 
     init() {
         UITabBar.appearance().backgroundColor = .C_5.withAlphaComponent(0.1)
     }
+
+    @AppStorage("onboardingState") var onboardingState: OnboardingState =
+        .required
 
     var body: some View {
         Group {
@@ -63,6 +64,15 @@ struct ContentView: View {
         }
         .task {
             diverStore.loadData()
+        }
+        .onOpenURL { url in
+            let urlComponents = URLComponents(
+                url: url,
+                resolvingAgainstBaseURL: false
+            )
+            let urlQueryItems = urlComponents?.queryItems ?? []
+
+            diverStore.getSharedDiver(urlQueryItems)
         }
     }
 }
