@@ -147,6 +147,8 @@ struct DiverDetailEditView: View {
     @State private var newInfo = DiverInfo()
     @State private var isAddingNewInfo = false
     @State private var isEmojiSelecting = false
+    @State private var isDeletingInfo = false
+    @State private var selectedInfoID: UUID?
 
     init(diver: Binding<Diver>, isEditing: Binding<Bool>) {
         self._diver = diver
@@ -195,8 +197,19 @@ struct DiverDetailEditView: View {
 
             Section {
                 ForEach($editedDiver.infoList) { info in
-                    DiverInfoRowEditView(diverInfo: info)
-                        .listRowBackground(Color.C_3)
+                    HStack {
+                        Button {
+                            selectedInfoID = info.id
+                            isDeletingInfo = true
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundStyle(.red)
+                        }
+                        .disabled(info.wrappedValue.isRequired)
+
+                        DiverInfoRowEditView(diverInfo: info)
+                    }
+                    .listRowBackground(Color.C_3)
                 }
                 Button {
                     newInfo = DiverInfo()
@@ -237,6 +250,20 @@ struct DiverDetailEditView: View {
                 isAddingNewInfo = false
                 withAnimation {
                     editedDiver.infoList.append(newInfo)
+                }
+            }
+        }
+        .alert(
+            "선택한 정보를 삭제하시겠습니까?",
+            isPresented: $isDeletingInfo
+        ) {
+            Button("삭제", role: .destructive) {
+                if let selectedInfoID {
+                    withAnimation {
+                        editedDiver.infoList.removeAll { info in
+                            info.id == selectedInfoID
+                        }
+                    }
                 }
             }
         }

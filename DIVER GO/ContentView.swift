@@ -91,38 +91,42 @@ struct ContentView: View {
             )
             let urlQueryItems = urlComponents?.queryItems ?? []
 
-            var diver = Diver("", isDefaultInfo: false)
-
             for item in urlQueryItems {
-                switch item.name {
-                case Diver.CodingKeys.id.stringValue:
-                    diver.id = UUID(uuidString: item.value!)!
-                    if let index = divers.firstIndex(where: { $0.id == diver.id}) {
-                        diver = divers[index]
-                        diver.infoList.removeAll()
+                if item.name == "diver" {
+                    guard let diverData = Data(base64Encoded: item.value ?? "") else {
+                        return
+                    }
+                    
+                    guard var diver = try? JSONDecoder().decode(
+                        Diver.self,
+                        from: diverData
+                    ) else {
+                        return
+                    }
+                    
+                    if let existingDiver = divers.first(
+                        where: { $0.id == diver.id }
+                    ) {
+                        existingDiver.nickname = diver.nickname
+                        existingDiver.emoji = diver.emoji
+                        existingDiver.infoList = diver.infoList
+                        existingDiver.updatedAt = Date()
+                        
+                        diver = existingDiver
                     } else {
+                        diver.createdAt = Date()
+                        diver.updatedAt = Date()
+                        
                         context.insert(diver)
                     }
-                case Diver.CodingKeys.nickname.stringValue:
-                    diver.nickname = item.value ?? ""
-                case Diver.CodingKeys.emoji.stringValue:
-                    diver.emoji = item.value ?? ""
-                case Diver.CodingKeys.createdAt.stringValue:
-                    diver.createdAt = item.value?.toDate() ?? Date()
-                case Diver.CodingKeys.updatedAt.stringValue:
-                    diver.updatedAt = item.value?.toDate() ?? Date()
-                default:
-                    diver.infoList
-                        .append(
-                            DiverInfo(
-                                title: item.name,
-                                description: item.value ?? ""
-                            )
-                        )
+                    
+                    #if DEBUG
+                    print("Shared diver: \(diver.description)")
+                    #endif
+                    
+                    selectedDiver = diver
                 }
             }
-            
-            selectedDiver = diver
         }
     }
 }

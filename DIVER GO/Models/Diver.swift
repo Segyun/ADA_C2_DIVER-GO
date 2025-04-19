@@ -5,8 +5,8 @@
 //  Created by 정희균 on 4/15/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct DiverInfo: Identifiable, Codable, Hashable {
     var id = UUID()
@@ -123,30 +123,51 @@ class Diver: Codable {
         try container.encode(updatedAt, forKey: .updatedAt)
     }
 
+    var description: String {
+        return """
+            Diver(
+                id: \(id),
+                nickname: \(nickname),
+                emoji: \(emoji),
+                infoList: \(infoList),
+                createdAt: \(createdAt),
+                updatedAt: \(updatedAt)
+            )
+            """
+    }
+
     func toURL() -> URL {
-        var url = "divergo://open?"
+        var url = "divergo://share?"
 
-        url += "\(CodingKeys.id.stringValue)=\(id)"
-        url += "&\(CodingKeys.nickname.stringValue)=\(nickname)"
-        url += "&\(CodingKeys.emoji.stringValue)=\(emoji)"
-        url += "&\(CodingKeys.createdAt.stringValue)=\(createdAt.toString())"
-        url += "&\(CodingKeys.updatedAt.stringValue)=\(updatedAt.toString())"
-
-        for info in infoList {
-            url += "&\(info.title)=\(info.description)"
+        guard let diverJSON = try? JSONEncoder().encode(self) else {
+            return URL(string: url)!
         }
+
+        #if DEBUG
+            print(
+                "Diver JSON: \(String(data: diverJSON, encoding: .utf8) ?? "")"
+            )
+        #endif
+
+        let diverBase64 = diverJSON.base64EncodedString()
+
+        url += "diver=\(diverBase64)"
+
+        #if DEBUG
+            print("Diver URL(\(url.count)): \(url)")
+        #endif
 
         return URL(string: url)!
     }
-    
+
     func getStrokeColor(_ mainDiver: Diver) -> Color {
         if self.id == mainDiver.id {
             return .C_1
         }
-        
+
         let dateComponents = Calendar.current
             .dateComponents([.day], from: self.updatedAt, to: Date())
-        
+
         if let days = dateComponents.day, days < 1 {
             return .C_2
         }
