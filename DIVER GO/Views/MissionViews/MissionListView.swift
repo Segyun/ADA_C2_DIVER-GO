@@ -5,9 +5,15 @@
 //  Created by 정희균 on 4/16/25.
 //
 
+import SwiftData
 import SwiftUI
 
 struct MissionListView: View {
+    @Binding var mainDiver: Diver
+    
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Diver.updatedAt) private var divers: [Diver]
+
     // ScrollViewReader에서 사용할 ID
     private let missionHeaderId = "mission"
     private let badgeHeaderId = "badge"
@@ -24,8 +30,22 @@ struct MissionListView: View {
                         pinnedViews: [.sectionHeaders]
                     ) {
                         Section {
-                            ForEach(0..<3) { _ in
-                                MissionRowView()
+                            MissionRowView(
+                                mainDiver: $mainDiver,
+                                mission: .builtin
+                            )
+                            if let mbtiMission = Mission.mbtiMission.stableRandom()
+                            {
+                                MissionRowView(
+                                    mainDiver: $mainDiver,
+                                    mission: mbtiMission
+                                )
+                            }
+                            if let randomDiver = divers.filter({ $0.id != mainDiver.id }).stableRandom() {
+                                MissionRowView(
+                                    mainDiver: $mainDiver,
+                                    mission: .diverMission(randomDiver)
+                                )
                             }
                         } header: {
                             MissionHeaderView()
@@ -47,8 +67,11 @@ struct MissionListView: View {
                                     count: 3
                                 )
                             ) {
-                                ForEach(0..<10, id: \.self) { _ in
-                                    BadgeItemView()
+                                ForEach(Badge.badges) { badge in
+                                    BadgeItemView(
+                                        mainDiver: $mainDiver,
+                                        badge: badge
+                                    )
                                 }
                             }
                         } header: {
@@ -76,18 +99,28 @@ struct MissionListView: View {
 // MARK: - Subviews
 
 // 미션 리스트의 미션 행을 나타내는 뷰
-struct MissionRowView: View {
+struct MissionRowView: View {    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Diver.updatedAt) private var divers: [Diver]
+
+    @Binding var mainDiver: Diver
+    let mission: Mission
+
     var body: some View {
         VStack {
             HStack {
-                Text("관심분야 Tech인 다이버 만나기")
+                Text(mission.description)
                     .font(.headline)
                 Spacer()
             }
             HStack {
-                ProgressView(value: 1.0 / 3.0)
-                    .progressViewStyle(.linear)
-                Text("1/3")
+                ProgressView(
+                    value: Double(mission.getMissionCount(divers.filter({ $0.id != mainDiver.id })))
+                        / Double(
+                            mission.count
+                        )
+                )
+                .progressViewStyle(.linear)
+                Text("\(mission.getMissionCount(divers))/\(mission.count)")
             }
         }
         .padding(.vertical)
@@ -113,12 +146,34 @@ struct MissionHeaderView: View {
 
 // 미션 리스트의 배지 행을 나타내는 뷰
 struct BadgeItemView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Diver.updatedAt) private var divers: [Diver]
+
+    @Binding var mainDiver: Diver
+    let badge: Badge
+    
     var body: some View {
         VStack {
-            ProfileImageView()
-            Text("배지 이름")
-            Text("배지 달성 조건")
+            Circle()
+                .stroke(badge.strokeColor(divers.filter({ $0.id != mainDiver.id })), lineWidth: 10)
+                .overlay {
+                    Image(.badge)
+                        .resizable()
+                        .scaledToFit()
+                        .grayscale(1)
+                        .colorMultiply(badge.tintColor)
+                        .brightness(0.1)
+                }
+                .padding(.bottom, 8)
+                
+            Text(badge.title)
+                .font(.headline)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+            Text(badge.description)
                 .font(.caption)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
         }
         .padding()
     }
@@ -142,5 +197,19 @@ struct BadgeHeaderView: View {
 }
 
 #Preview {
-    MissionListView()
+    @Previewable @State var mainDiver = Diver("Main Diver", isDefaultInfo: true)
+    
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Diver.self, configurations: config)
+    
+    container.mainContext.insert(mainDiver)
+    
+    for i in 1..<10 {
+        let diver = Diver("Test \(i)", isDefaultInfo: true)
+        container.mainContext.insert(diver)
+    }
+
+    return MissionListView(mainDiver: $mainDiver)
+        .preferredColorScheme(.dark)
+        .modelContainer(container)
 }

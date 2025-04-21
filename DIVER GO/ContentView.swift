@@ -58,7 +58,7 @@ struct ContentView: View {
                         )
                     }
                     Tab("미션", systemImage: "list.bullet.clipboard") {
-                        MissionListView()
+                        MissionListView(mainDiver: $mainDiver)
                     }
                 }
                 .toolbarBackgroundVisibility(.hidden, for: .tabBar)
@@ -94,6 +94,7 @@ struct ContentView: View {
                 #endif
                 mainDiverID = mainDiver.id.uuidString
                 context.insert(mainDiver)
+                onboardingState = .required
             }
         }
         .onOpenURL { url in
