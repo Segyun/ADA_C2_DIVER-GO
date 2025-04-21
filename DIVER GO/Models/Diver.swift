@@ -171,7 +171,7 @@ class Diver: Codable {
         if let days = dateComponents.day, days < 1 {
             return .C_2
         }
-        return .C_3
+        return .C_5
     }
 
     static var builtin: Diver { Diver("Lemon") }

@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import MCEmojiPicker
 
 struct OnboardingView: View {
     @Binding var mainDiver: Diver
@@ -132,10 +131,13 @@ struct OnboardingView: View {
                     )
                     isEmojiSelecting = true
                 }
-                .emojiPicker(
-                    isPresented: $isEmojiSelecting,
-                    selectedEmoji: $mainDiver.emoji
-                )
+                .sheet(isPresented: $isEmojiSelecting) {
+                    EmojiPickerView { emoji in
+                        mainDiver.emoji = emoji
+                    }
+                    .presentationDragIndicator(.visible)
+                    .ignoresSafeArea()
+                }
                 TextField("닉네임을 입력해주세요.", text: $mainDiver.nickname)
                     .multilineTextAlignment(.center)
                     .padding(8)

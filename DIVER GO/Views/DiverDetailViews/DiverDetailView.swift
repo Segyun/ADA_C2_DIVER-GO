@@ -122,7 +122,6 @@ struct DiverDetailReadView: View {
                             )
                         )
                     )
-
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("편집") {
@@ -173,18 +172,8 @@ struct DiverDetailEditView: View {
                         .shadow(radius: 7)
                 }
                 .onTapGesture {
-                    UIApplication.shared.sendAction(
-                        #selector(UIResponder.resignFirstResponder),
-                        to: nil,
-                        from: nil,
-                        for: nil
-                    )
                     isEmojiSelecting = true
                 }
-                .emojiPicker(
-                    isPresented: $isEmojiSelecting,
-                    selectedEmoji: $editedDiver.emoji
-                )
             }
             .listRowBackground(Color.clear)
 
@@ -203,7 +192,7 @@ struct DiverDetailEditView: View {
                             isDeletingInfo = true
                         } label: {
                             Image(systemName: "minus.circle.fill")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(info.wrappedValue.isRequired ? .gray : .red)
                         }
                         .disabled(info.wrappedValue.isRequired)
 
@@ -252,6 +241,7 @@ struct DiverDetailEditView: View {
                     editedDiver.infoList.append(newInfo)
                 }
             }
+            .disabled(newInfo.title.isEmpty)
         }
         .alert(
             "선택한 정보를 삭제하시겠습니까?",
@@ -266,6 +256,13 @@ struct DiverDetailEditView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $isEmojiSelecting) {
+            EmojiPickerView { emoji in
+                editedDiver.emoji = emoji
+            }
+            .presentationDragIndicator(.visible)
+            .ignoresSafeArea()
         }
     }
 }

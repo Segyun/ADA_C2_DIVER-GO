@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import UserNotifications
 
 enum OnboardingState: Int {
     case required
@@ -65,6 +66,17 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            let center = UNUserNotificationCenter.current()
+            center.requestAuthorization(options: [.alert, .badge, .sound]) {
+                sucess,
+                    error in
+                if sucess {
+                    print("Notification permission granted.")
+                } else if let error {
+                    print(error)
+                }
+            }
+
             if let mainDiverID {
                 #if DEBUG
                     print("mainDiverID exists: \(mainDiverID)")
@@ -91,40 +103,104 @@ struct ContentView: View {
             )
             let urlQueryItems = urlComponents?.queryItems ?? []
 
-            for item in urlQueryItems {
-                if item.name == "diver" {
-                    guard let diverData = Data(base64Encoded: item.value ?? "") else {
-                        return
-                    }
-                    
-                    guard var diver = try? JSONDecoder().decode(
-                        Diver.self,
-                        from: diverData
-                    ) else {
-                        return
-                    }
-                    
-                    if let existingDiver = divers.first(
-                        where: { $0.id == diver.id }
-                    ) {
-                        existingDiver.nickname = diver.nickname
-                        existingDiver.emoji = diver.emoji
-                        existingDiver.infoList = diver.infoList
-                        existingDiver.updatedAt = Date()
+            if urlComponents?.host == "open" {
+                guard
+                    let idString = urlQueryItems.first(where: {
+                        $0.name == "id"
+                    })?.value
+                else {
+                    return
+                }
+
+                let diver = divers.first(where: { $0.id.uuidString == idString }
+                )
+
+                selectedDiver = diver
+            } else if urlComponents?.host == "share" {
+                for item in urlQueryItems {
+                    if item.name == "diver" {
+                        guard
+                            let diverData = Data(
+                                base64Encoded: item.value ?? ""
+                            )
+                        else {
+                            return
+                        }
+
+                        guard
+                            var diver = try? JSONDecoder().decode(
+                                Diver.self,
+                                from: diverData
+                            )
+                        else {
+                            return
+                        }
+
+                        if let existingDiver = divers.first(
+                            where: { $0.id == diver.id }
+                        ) {
+                            existingDiver.nickname = diver.nickname
+                            existingDiver.emoji = diver.emoji
+                            existingDiver.infoList = diver.infoList
+                            existingDiver.updatedAt = Date()
+
+                            diver = existingDiver
+                        } else {
+                            diver.createdAt = Date()
+                            diver.updatedAt = Date()
+
+                            context.insert(diver)
+                        }
+
+                        #if DEBUG
+                            print("Shared diver: \(diver.description)")
+                        #endif
+
+                        selectedDiver = diver
+
+                        let content = UNMutableNotificationContent()
+                        content.title = "DIVER GO"
+                        content.body =
+                            "\(diver.emoji) \(diver.nickname)을 5일 전에 마지막으로 만났어요."
+                        content.sound = UNNotificationSound.default
+
+                        let triggerDate = Calendar.current.date(
+                            byAdding: .second,
+                            value: 5,
+                            to: Date()
+                        )
+
+                        var triggerDateComponents = Calendar.current
+                            .dateComponents(
+                                [.year, .month, .day],
+                                from: triggerDate!
+                            )
+
+                        triggerDateComponents.hour = 9
+                        triggerDateComponents.minute = 0
                         
-                        diver = existingDiver
-                    } else {
-                        diver.createdAt = Date()
-                        diver.updatedAt = Date()
-                        
-                        context.insert(diver)
+                        let trigger = UNCalendarNotificationTrigger(
+                            dateMatching: triggerDateComponents,
+                            repeats: false
+                        )
+
+                        let request = UNNotificationRequest(
+                            identifier: diver.id.uuidString,
+                            content: content,
+                            trigger: trigger
+                        )
+
+                        UNUserNotificationCenter.current().add(request)
+
+                        #if DEBUG
+                            UNUserNotificationCenter.current()
+                                .getPendingNotificationRequests { requests in
+                                    for request in requests {
+                                        print(request.content.body)
+                                    }
+                                }
+                        #endif
                     }
-                    
-                    #if DEBUG
-                    print("Shared diver: \(diver.description)")
-                    #endif
-                    
-                    selectedDiver = diver
                 }
             }
         }
@@ -135,7 +211,7 @@ struct ContentView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Diver.self, configurations: config)
 
-    for i in 1..<10 {
+    for i in 1 ..< 10 {
         let diver = Diver("Test \(i)", isDefaultInfo: true)
         container.mainContext.insert(diver)
     }

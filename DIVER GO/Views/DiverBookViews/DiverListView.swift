@@ -5,20 +5,20 @@
 //  Created by 정희균 on 4/16/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct DiverListView: View {
     @Binding var mainDiver: Diver
     @Binding var selectedDiver: Diver?
-    
+
     @Environment(\.modelContext) private var modelContext
-    @Query private var divers: [Diver]
-    
+    @Query(sort: \Diver.updatedAt) private var divers: [Diver]
+
     @State private var isEditing = false
     @State private var isShowingAlert = false
     @State private var deletingDiver: Diver?
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -31,7 +31,7 @@ struct DiverListView: View {
                             emoji: mainDiver.emoji,
                             strokeColor: mainDiver.getStrokeColor(mainDiver)
                         )
-                            .padding(.bottom, 4)
+                        .padding(.bottom, 4)
                         Text(mainDiver.nickname)
                             .font(.headline)
                             .lineLimit(1, reservesSpace: true)
@@ -42,7 +42,7 @@ struct DiverListView: View {
                         selectedDiver = mainDiver
                     }
                     .padding(.top)
-                    
+
                     ZStack {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(.C_3)
@@ -57,25 +57,36 @@ struct DiverListView: View {
                                             ZStack {
                                                 ProfileImageView(
                                                     emoji: diver.emoji,
-                                                    strokeColor: diver
-                                                        .getStrokeColor(mainDiver)
+                                                    strokeColor:
+                                                        diver
+                                                        .getStrokeColor(
+                                                            mainDiver
+                                                        )
                                                 )
                                                 .padding(.bottom, 4)
-                                                
+
                                                 if isEditing {
-                                                    Image(systemName: "minus.circle.fill")
-                                                        .resizable()
-                                                        .scaledToFit()
-                                                        .frame(width: 28)
-                                                        .symbolRenderingMode(.multicolor)
-                                                        .foregroundStyle(.red)
-                                                        .offset(x: -32, y: -32)
-                                                        .shadow(radius: 7)
+                                                    Image(
+                                                        systemName:
+                                                            "minus.circle.fill"
+                                                    )
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 28)
+                                                    .symbolRenderingMode(
+                                                        .multicolor
+                                                    )
+                                                    .foregroundStyle(.red)
+                                                    .offset(x: -32, y: -32)
+                                                    .shadow(radius: 7)
                                                 }
                                             }
-                                            
+
                                             Text(diver.nickname)
-                                                .lineLimit(1, reservesSpace: true)
+                                                .lineLimit(
+                                                    1,
+                                                    reservesSpace: true
+                                                )
                                                 .minimumScaleFactor(0.5)
                                         }
                                         .padding()
@@ -109,18 +120,25 @@ struct DiverListView: View {
             .sheet(item: $selectedDiver) { diver in
                 DiverDetailView(
                     mainDiver: $mainDiver,
-                    diver: diver.id == mainDiver.id ? $mainDiver : .constant(diver)
+                    diver: diver.id == mainDiver.id
+                        ? $mainDiver : .constant(diver)
                 )
             }
             .alert(
-                    "'\(deletingDiver?.nickname ?? "")'을 삭제하시겠습니까?",
-                isPresented: $isShowingAlert) {
-                    Button("삭제", role: .destructive) {
-                        if let deletingDiver {
-                            modelContext.delete(deletingDiver)
-                        }
+                "'\(deletingDiver?.nickname ?? "")'을 삭제하시겠습니까?",
+                isPresented: $isShowingAlert
+            ) {
+                Button("삭제", role: .destructive) {
+                    if let deletingDiver {
+                        UNUserNotificationCenter
+                            .current()
+                            .removeDeliveredNotifications(
+                                withIdentifiers: [deletingDiver.id.uuidString]
+                            )
+                        modelContext.delete(deletingDiver)
                     }
                 }
+            }
         }
     }
 }
@@ -130,7 +148,7 @@ struct DiverListView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Diver.self, configurations: config)
     container.mainContext.insert(mainDiver)
-    
+
     for i in 1..<10 {
         let diver = Diver("Test \(i)", isDefaultInfo: true)
         container.mainContext.insert(diver)
