@@ -69,7 +69,7 @@ struct ContentView: View {
             let center = UNUserNotificationCenter.current()
             center.requestAuthorization(options: [.alert, .badge, .sound]) {
                 sucess,
-                    error in
+                error in
                 if sucess {
                     print("Notification permission granted.")
                 } else if let error {
@@ -212,7 +212,7 @@ struct ContentView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Diver.self, configurations: config)
 
-    for i in 1 ..< 10 {
+    for i in 1..<10 {
         let diver = Diver("Test \(i)", isDefaultInfo: true)
         container.mainContext.insert(diver)
     }

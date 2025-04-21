@@ -25,7 +25,7 @@ struct DiverListView: View {
             ZStack {
                 Color.C_4
                     .ignoresSafeArea()
-                
+
                 VStack {
                     VStack {
                         ProfileImageView(
@@ -43,7 +43,7 @@ struct DiverListView: View {
                         selectedDiver = mainDiver
                     }
                     .padding(.top)
-                    
+
                     ZStack {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(.C_3)
@@ -60,7 +60,13 @@ struct DiverListView: View {
                                     .fill(.C_4)
                             }
                             .padding([.top, .horizontal])
-                            
+
+                            if divers.count == 1 {
+                                Text("다이버 도감이 비어있어요.")
+                                    .foregroundStyle(.tertiary)
+                                    .padding()
+                            }
+
                             DiverGridView(
                                 searchText: searchText,
                                 mainDiver: $mainDiver,
@@ -89,7 +95,7 @@ struct DiverListView: View {
                 DiverDetailView(
                     mainDiver: $mainDiver,
                     diver: diver.id == mainDiver.id
-                    ? $mainDiver : .constant(diver)
+                        ? $mainDiver : .constant(diver)
                 )
             }
             .alert(
@@ -117,16 +123,23 @@ struct DiverGridView: View {
     @Binding var isEditing: Bool
     @Binding var isShowingAlert: Bool
     @Binding var deletingDiver: Diver?
-    
+
     @Query private var divers: [Diver]
-    
-    init(searchText: String, mainDiver: Binding<Diver>, selectedDiver: Binding<Diver?>, isEditing: Binding<Bool>, isShowingAlert: Binding<Bool>, deletingDiver: Binding<Diver?>) {
+
+    init(
+        searchText: String,
+        mainDiver: Binding<Diver>,
+        selectedDiver: Binding<Diver?>,
+        isEditing: Binding<Bool>,
+        isShowingAlert: Binding<Bool>,
+        deletingDiver: Binding<Diver?>
+    ) {
         self._mainDiver = mainDiver
         self._selectedDiver = selectedDiver
         self._isEditing = isEditing
         self._isShowingAlert = isShowingAlert
         self._deletingDiver = deletingDiver
-        
+
         if searchText.isEmpty {
             self._divers = Query(sort: \Diver.updatedAt)
         } else {
@@ -138,7 +151,7 @@ struct DiverGridView: View {
             )
         }
     }
-    
+
     var body: some View {
         LazyVGrid(
             columns: Array(repeating: GridItem(), count: 3)

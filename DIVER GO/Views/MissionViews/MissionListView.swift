@@ -13,6 +13,9 @@ struct MissionListView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Diver.updatedAt) private var divers: [Diver]
+    
+    @AppStorage("lastMissionDate") private var lastMissionDate: Date?
+    @AppStorage("lastMissionDiverID") private var lastMissionDiverID: String?
 
     // ScrollViewReader에서 사용할 ID
     private let missionHeaderId = "mission"
@@ -41,7 +44,9 @@ struct MissionListView: View {
                                     mission: mbtiMission
                                 )
                             }
-                            if let randomDiver = divers.filter({ $0.id != mainDiver.id }).stableRandom() {
+                            if let randomDiver = divers.first(
+                                where: { $0.id.uuidString == lastMissionDiverID
+                                }) {
                                 MissionRowView(
                                     mainDiver: $mainDiver,
                                     mission: .diverMission(randomDiver)
@@ -93,6 +98,26 @@ struct MissionListView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            if let lastMissionDate {
+                let dateComponents = Calendar.current.dateComponents(
+                    [.year, .month, .day],
+                    from: lastMissionDate
+                )
+                
+                if dateComponents == Calendar.current.dateComponents(
+                    [.year, .month, .day],
+                    from: Date()
+                ) {
+                    return
+                }
+            }
+            
+            if divers.count > 0 {
+                lastMissionDate = Date()
+                lastMissionDiverID = divers.filter({ $0.id != mainDiver.id }).stableRandom()?.id.uuidString
+            }
+        }
     }
 }
 
@@ -120,7 +145,7 @@ struct MissionRowView: View {    @Environment(\.modelContext) private var modelC
                         )
                 )
                 .progressViewStyle(.linear)
-                Text("\(mission.getMissionCount(divers))/\(mission.count)")
+                Text("\(mission.getMissionCount(divers.filter({ $0.id != mainDiver.id })))/\(mission.count)")
             }
         }
         .padding(.vertical)
@@ -159,10 +184,19 @@ struct BadgeItemView: View {
                 .overlay {
                     Image(.badge)
                         .resizable()
+                        .interpolation(.high)
                         .scaledToFit()
                         .grayscale(1)
                         .colorMultiply(badge.tintColor)
                         .brightness(0.1)
+                    if badge.category == .mbti, let mbti = badge.infoDescription {
+                        Text(mbti)
+                            .font(.system(size: 20))
+                            .bold()
+                            .foregroundStyle(badge.tintColor)
+                            .opacity(0.5)
+                            .offset(y: 18)
+                    }
                 }
                 .padding(.bottom, 8)
                 

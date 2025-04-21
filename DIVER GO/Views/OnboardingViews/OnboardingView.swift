@@ -5,15 +5,16 @@
 //  Created by 정희균 on 4/14/25.
 //
 
-import SwiftUI
+import AVKit
 import SwiftData
+import SwiftUI
 
 struct OnboardingView: View {
     @Binding var mainDiver: Diver
     @Binding var onboardingState: OnboardingState
-    
+
     private let backgroundColors: [[Color]] = [[.C_2, .C_3], [.C_3, .C_4]]
-    
+
     @State private var currentPage = 0
 
     var body: some View {
@@ -72,10 +73,20 @@ struct OnboardingView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            if let url = Bundle.main.url(
+                forResource: "Share",
+                withExtension: "mov"
+            ) {
+                let asset = AVURLAsset(url: url)
+                let item = AVPlayerItem(asset: asset)
+                self.looper = AVPlayerLooper(player: player, templateItem: item)
+            }
+        }
     }
 
     // MARK: Background View
-    
+
     private var BackgroundGradient: some View {
         Group {
             switch currentPage {
@@ -93,7 +104,7 @@ struct OnboardingView: View {
         .animation(.default, value: currentPage)
         .ignoresSafeArea()
     }
-    
+
     // MARK: First Onboarding View
 
     @State private var isEmojiSelecting = false
@@ -152,7 +163,7 @@ struct OnboardingView: View {
     }
 
     // MARK: Second Onboarding View
-    
+
     @State private var newInfo = DiverInfo()
     @State private var isAddingNewInfo = false
 
@@ -217,17 +228,40 @@ struct OnboardingView: View {
             .disabled(newInfo.title.isEmpty)
         }
     }
-    
+
     // MARK: Third Onboarding View
+
+    @State private var player = AVQueuePlayer()
+    @State private var looper: AVPlayerLooper?
 
     private var ThirdOnboardingView: some View {
         VStack {
-            Text("자신의 다이버 프로필에서 ")
-                + Text(
-                    Image(systemName: "square.and.arrow.up")
-                ) + Text("를 눌러\n다른 다이버와 공유해보세요.")
+            Group {
+                Text("자신의 다이버 프로필에서 ")
+                    + Text(
+                        Image(systemName: "square.and.arrow.up")
+                    ) + Text("를 눌러\n다른 다이버와 공유해보세요.")
+            }
+            .font(.headline)
+
+            VStack(spacing: 10) {
+                VideoPlayer(player: player)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                Text("AirDrop이나 NameDrop으로 공유할 수 있어요.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .background {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.black)
+                    .opacity(0.2)
+            }
+            .frame(width: 300, height: 300)
         }
-        .font(.headline)
+        .onAppear {
+            player.play()
+        }
     }
 }
 
@@ -236,7 +270,7 @@ struct OnboardingView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Diver.self, configurations: config)
     container.mainContext.insert(mainDiver)
-    
+
     for i in 1..<10 {
         let diver = Diver("Test \(i)", isDefaultInfo: true)
         container.mainContext.insert(diver)
