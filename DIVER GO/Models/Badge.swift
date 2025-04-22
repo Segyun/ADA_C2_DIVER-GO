@@ -15,7 +15,7 @@ enum BadgeCategory {
 }
 
 struct Badge: Identifiable {
-    var id = UUID()
+    var id: String
     var title: String
     var description: String
     var category: BadgeCategory
@@ -25,8 +25,12 @@ struct Badge: Identifiable {
     var infoTitle: String?
     var infoDescription: String?
     
+    func isCompleted(_ divers: [Diver]) -> Bool {
+        return self.getBadgeCount(divers) >= self.count
+    }
+    
     func strokeColor(_ divers: [Diver]) -> Color {
-        if self.getBadgeCount(divers) >= self.count {
+        if self.isCompleted(divers) {
             return .C_1
         }
         return .C_3
@@ -35,6 +39,7 @@ struct Badge: Identifiable {
     static var badges: [Badge] {
         [
             Badge(
+                id: "com.lemon.achievement.first_meet",
                 title: "다이버 첫 만남",
                 description: "다이버 1명 만나기",
                 category: .any,
@@ -42,6 +47,7 @@ struct Badge: Identifiable {
                 tintColor: .brown
             ),
             Badge(
+                id: "com.lemon.achievement.diver_friend",
                 title: "다이버 친구",
                 description: "다이버 10명 만나기",
                 category: .any,
@@ -49,6 +55,7 @@ struct Badge: Identifiable {
                 tintColor: .gray
             ),
             Badge(
+                id: "com.lemon.achievement.diver_bf",
                 title: "다이버 베프",
                 description: "다이버 50명 만나기",
                 category: .any,
@@ -56,6 +63,7 @@ struct Badge: Identifiable {
                 tintColor: .yellow
             ),
             Badge(
+                id: "com.lemon.achievement.celeb",
                 title: "다이버 셀럽",
                 description: "다이버 100명 만나기",
                 category: .any,
@@ -63,6 +71,7 @@ struct Badge: Identifiable {
                 tintColor: .C_2
             ),
             Badge(
+                id: "com.lemon.achievement.infj_collector",
                 title: "INFJ 콜렉터",
                 description: "INFJ 다이버 10명 만나기",
                 category: .mbti,
@@ -72,6 +81,7 @@ struct Badge: Identifiable {
                 infoDescription: "INFJ"
             ),
             Badge(
+                id: "com.lemon.achievement.infp_collector",
                 title: "INFP 콜렉터",
                 description: "INFP 다이버 10명 만나기",
                 category: .mbti,
@@ -81,6 +91,7 @@ struct Badge: Identifiable {
                 infoDescription: "INFP"
             ),
             Badge(
+                id: "com.lemon.achievement.intj_collector",
                 title: "INTJ 콜렉터",
                 description: "INTJ 다이버 10명 만나기",
                 category: .mbti,
@@ -90,6 +101,7 @@ struct Badge: Identifiable {
                 infoDescription: "INTJ"
             ),
             Badge(
+                id: "com.lemon.achievement.intp_collector",
                 title: "INTP 콜렉터",
                 description: "INTP 다이버 10명 만나기",
                 category: .mbti,
@@ -99,6 +111,7 @@ struct Badge: Identifiable {
                 infoDescription: "INTP"
             ),
             Badge(
+                id: "com.lemon.achievement.isfj_collector",
                 title: "ISFJ 콜렉터",
                 description: "ISFJ 다이버 10명 만나기",
                 category: .mbti,
@@ -108,6 +121,7 @@ struct Badge: Identifiable {
                 infoDescription: "ISFJ"
             ),
             Badge(
+                id: "com.lemon.achievement.isfp_collector",
                 title: "ISFP 콜렉터",
                 description: "ISFP 다이버 10명 만나기",
                 category: .mbti,
@@ -117,6 +131,7 @@ struct Badge: Identifiable {
                 infoDescription: "ISFP"
             ),
             Badge(
+                id: "com.lemon.achievement.istj_collector",
                 title: "ISTJ 콜렉터",
                 description: "ISTJ 다이버 10명 만나기",
                 category: .mbti,
@@ -126,6 +141,7 @@ struct Badge: Identifiable {
                 infoDescription: "ISTJ"
             ),
             Badge(
+                id: "com.lemon.achievement.istp_collector",
                 title: "ISTP 콜렉터",
                 description: "ISTP 다이버 10명 만나기",
                 category: .mbti,
@@ -134,8 +150,8 @@ struct Badge: Identifiable {
                 infoTitle: "MBTI",
                 infoDescription: "ISTP"
             ),
-            // E로 시작 (tintColor: .teal)
             Badge(
+                id: "com.lemon.achievement.enfj_collector",
                 title: "ENFJ 콜렉터",
                 description: "ENFJ 다이버 10명 만나기",
                 category: .mbti,
@@ -145,6 +161,7 @@ struct Badge: Identifiable {
                 infoDescription: "ENFJ"
             ),
             Badge(
+                id: "com.lemon.achievement.enfp_collector",
                 title: "ENFP 콜렉터",
                 description: "ENFP 다이버 10명 만나기",
                 category: .mbti,
@@ -154,6 +171,7 @@ struct Badge: Identifiable {
                 infoDescription: "ENFP"
             ),
             Badge(
+                id: "com.lemon.achievement.entj_collector",
                 title: "ENTJ 콜렉터",
                 description: "ENTJ 다이버 10명 만나기",
                 category: .mbti,
@@ -163,6 +181,7 @@ struct Badge: Identifiable {
                 infoDescription: "ENTJ"
             ),
             Badge(
+                id: "com.lemon.achievement.entp_collector",
                 title: "ENTP 콜렉터",
                 description: "ENTP 다이버 10명 만나기",
                 category: .mbti,
@@ -172,6 +191,7 @@ struct Badge: Identifiable {
                 infoDescription: "ENTP"
             ),
             Badge(
+                id: "com.lemon.achievement.esfj_collector",
                 title: "ESFJ 콜렉터",
                 description: "ESFJ 다이버 10명 만나기",
                 category: .mbti,
@@ -181,6 +201,7 @@ struct Badge: Identifiable {
                 infoDescription: "ESFJ"
             ),
             Badge(
+                id: "com.lemon.achievement.esfp_collector",
                 title: "ESFP 콜렉터",
                 description: "ESFP 다이버 10명 만나기",
                 category: .mbti,
@@ -190,6 +211,7 @@ struct Badge: Identifiable {
                 infoDescription: "ESFP"
             ),
             Badge(
+                id: "com.lemon.achievement.estj_collector",
                 title: "ESTJ 콜렉터",
                 description: "ESTJ 다이버 10명 만나기",
                 category: .mbti,
@@ -199,6 +221,7 @@ struct Badge: Identifiable {
                 infoDescription: "ESTJ"
             ),
             Badge(
+                id: "com.lemon.achievement.estp_collector",
                 title: "ESTP 콜렉터",
                 description: "ESTP 다이버 10명 만나기",
                 category: .mbti,

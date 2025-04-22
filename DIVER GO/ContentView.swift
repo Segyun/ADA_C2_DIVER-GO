@@ -8,6 +8,7 @@
 import SwiftData
 import SwiftUI
 import UserNotifications
+import GameKit
 
 enum OnboardingState: Int {
     case required
@@ -203,6 +204,15 @@ struct ContentView: View {
                         #endif
                     }
                 }
+            }
+        }
+    }
+    
+    func authenticateUser() {
+        GKLocalPlayer.local.authenticateHandler = { vc, error in
+            guard error == nil else {
+                print(error?.localizedDescription ?? "")
+                return
             }
         }
     }

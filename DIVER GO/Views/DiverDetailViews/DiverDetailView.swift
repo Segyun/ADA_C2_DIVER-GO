@@ -5,7 +5,6 @@
 //  Created by 정희균 on 4/16/25.
 //
 
-import MCEmojiPicker
 import SwiftUI
 
 struct DiverDetailView: View {

@@ -165,10 +165,13 @@ class Diver: Codable {
             return .C_1
         }
 
-        let dateComponents = Calendar.current
-            .dateComponents([.day], from: self.updatedAt, to: Date())
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMdd"
 
-        if let days = dateComponents.day, days < 1 {
+        let updatedDate = dateFormatter.string(from: self.updatedAt)
+        let todayDate = dateFormatter.string(from: Date())
+        
+        if updatedDate == todayDate {
             return .C_2
         }
         return .C_5
