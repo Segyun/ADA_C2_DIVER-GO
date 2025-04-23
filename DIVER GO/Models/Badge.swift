@@ -14,7 +14,7 @@ enum BadgeCategory {
     case learningType
 }
 
-struct Badge: Identifiable {
+struct Badge: Identifiable, Hashable {
     var id: String
     var title: String
     var description: String
