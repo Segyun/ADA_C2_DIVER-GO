@@ -14,6 +14,7 @@ struct MissionListView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Diver.updatedAt) private var divers: [Diver]
+    @Namespace private var namespace
 
     @AppStorage("lastMissionDate") private var lastMissionDate: Date?
     @AppStorage("lastMissionDiverID") private var lastMissionDiverID: String?
@@ -22,13 +23,15 @@ struct MissionListView: View {
     private let missionHeaderId = "mission"
     private let badgeHeaderId = "badge"
 
+    @State private var selectedBadge: Badge?
+
     fileprivate func updateRandomDiverMeet() {
         if let lastMissionDate {
             let dateComponents = Calendar.current.dateComponents(
                 [.year, .month, .day],
                 from: lastMissionDate
             )
-            
+
             if dateComponents
                 == Calendar.current.dateComponents(
                     [.year, .month, .day],
@@ -38,22 +41,22 @@ struct MissionListView: View {
                 return
             }
         }
-        
+
         if divers.count > 0 {
             lastMissionDate = Date()
             lastMissionDiverID =
-            divers.filter({ $0.id != mainDiver.id }).stableRandom()?.id
-                .uuidString
+                divers.filter { $0.id != mainDiver.id }.stableRandom()?.id
+                    .uuidString
         }
     }
-    
+
     var body: some View {
         NavigationStack {
             ScrollViewReader { proxy in
                 ZStack {
                     Color.C_4
                         .ignoresSafeArea()
-                    
+
                     ScrollView {
                         LazyVStack(
                             alignment: .leading,
@@ -94,7 +97,7 @@ struct MissionListView: View {
                                         }
                                     }
                             }
-                            
+
                             Section {
                                 LazyVGrid(
                                     columns: Array(
@@ -105,8 +108,13 @@ struct MissionListView: View {
                                     ForEach(Badge.badges) { badge in
                                         BadgeItemView(
                                             mainDiver: $mainDiver,
-                                            badge: badge
+                                            selectedBadge: $selectedBadge,
+                                            badge: badge,
+                                            namespace: namespace
                                         )
+                                        .onTapGesture {
+                                            selectedBadge = badge
+                                        }
                                     }
                                 }
                             } header: {
@@ -128,15 +136,40 @@ struct MissionListView: View {
                     .clipped()
                 }
             }
-            .preferredColorScheme(.dark)
-            .onAppear {
-                GKAccessPoint.shared.isActive = true
-                
-                updateRandomDiverMeet()
+            .navigationDestination(item: $selectedBadge) { badge in
+                ZStack {
+                    Group {
+                        Color.C_5
+
+                        RadialGradient(
+                            gradient: Gradient(colors: [
+                                badge.tintColor, .clear,
+                            ]),
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 300
+                        )
+                        .opacity(0.3)
+                    }
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        selectedBadge = nil
+                    }
+
+                    BadgeDetailView(badge: badge, namespace: namespace)
+                }
+                .toolbar(.hidden)
+                .navigationTransition(.zoom(sourceID: badge.id, in: namespace))
             }
-            .onDisappear {
-                GKAccessPoint.shared.isActive = false
-            }
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            GKAccessPoint.shared.isActive = true
+
+            updateRandomDiverMeet()
+        }
+        .onDisappear {
+            GKAccessPoint.shared.isActive = false
         }
     }
 }
@@ -162,7 +195,7 @@ struct MissionRowView: View {
                 ProgressView(
                     value: Double(
                         mission.getMissionCount(
-                            divers.filter({ $0.id != mainDiver.id })
+                            divers.filter { $0.id != mainDiver.id }
                         )
                     )
                         / Double(
@@ -171,7 +204,7 @@ struct MissionRowView: View {
                 )
                 .progressViewStyle(.linear)
                 Text(
-                    "\(mission.getMissionCount(divers.filter({ $0.id != mainDiver.id })))/\(mission.count)"
+                    "\(mission.getMissionCount(divers.filter { $0.id != mainDiver.id }))/\(mission.count)"
                 )
             }
         }
@@ -202,19 +235,20 @@ struct BadgeItemView: View {
     @Query(sort: \Diver.updatedAt) private var divers: [Diver]
 
     @Binding var mainDiver: Diver
+    @Binding var selectedBadge: Badge?
     let badge: Badge
 
+    var namespace: Namespace.ID
+
     var body: some View {
-        NavigationLink {
-            BadgeDetailView(badge: badge)
-        } label: {
-            VStack {
-                Circle()
-                    .stroke(
-                        badge.strokeColor(divers.filter({ $0.id != mainDiver.id })),
-                        lineWidth: 10
-                    )
-                    .overlay {
+        VStack {
+            Circle()
+                .stroke(
+                    badge.strokeColor(divers.filter { $0.id != mainDiver.id }),
+                    lineWidth: 10
+                )
+                .overlay {
+                    Group {
                         Image(.badge)
                             .resizable()
                             .interpolation(.high)
@@ -222,8 +256,7 @@ struct BadgeItemView: View {
                             .grayscale(1)
                             .colorMultiply(badge.tintColor)
                             .brightness(0.1)
-                        if badge.category == .mbti, let mbti = badge.infoDescription
-                        {
+                        if badge.category == .mbti, let mbti = badge.infoDescription {
                             Text(mbti)
                                 .font(.system(size: 20))
                                 .bold()
@@ -232,30 +265,36 @@ struct BadgeItemView: View {
                                 .offset(y: 18)
                         }
                     }
-                    .padding(.bottom, 8)
-                Text(badge.title)
-                    .font(.headline)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
-                Text(badge.description)
-                    .font(.caption)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
-            }
-            .padding()
-            .onAppear {
-                if badge.isCompleted(divers.filter({ $0.id != mainDiver.id })) {
-                    Task {
-                        let achievement = GKAchievement(identifier: badge.id)
-                        achievement.percentComplete = 100
-                        
-                        do {
-                            try await GKAchievement.report([achievement])
-                        } catch {
-                            print("Failed to report achievement: \(error)")
-                        }
+                    .matchedTransitionSource(id: badge.id, in: namespace)
+                }
+                .padding(.bottom, 8)
+            Text(badge.title)
+                .font(.headline)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+            Text(badge.description)
+                .font(.caption)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+        }
+        .padding()
+        .onAppear {
+            if badge.isCompleted(divers.filter { $0.id != mainDiver.id }) {
+                Task {
+                    let achievement = GKAchievement(identifier: badge.id)
+                    achievement.percentComplete = 100
+
+                    do {
+                        try await GKAchievement.report([achievement])
+                    } catch {
+                        print("Failed to report achievement: \(error)")
                     }
                 }
+            }
+        }
+        .onTapGesture {
+            withAnimation {
+                selectedBadge = badge
             }
         }
     }
@@ -286,7 +325,7 @@ struct BadgeHeaderView: View {
 
     container.mainContext.insert(mainDiver)
 
-    for i in 1..<10 {
+    for i in 1 ..< 10 {
         let diver = Diver("Test \(i)", isDefaultInfo: true)
         container.mainContext.insert(diver)
     }
