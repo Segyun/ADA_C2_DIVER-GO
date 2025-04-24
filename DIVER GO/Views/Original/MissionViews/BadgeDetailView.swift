@@ -5,9 +5,14 @@
 //  Created by 정희균 on 4/22/25.
 //
 
+import SwiftData
 import SwiftUI
 
 struct BadgeDetailView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Diver.updatedAt) private var divers: [Diver]
+
+    @Binding var mainDiver: Diver
     let badge: Badge
     let namespace: Namespace.ID
 
@@ -53,7 +58,12 @@ struct BadgeDetailView: View {
             Text(badge.title)
                 .font(.headline)
             Text(badge.description)
-                .font(.caption)
+                .font(.footnote)
+                .padding(.bottom)
+            Text(
+                "지금까지 \(badge.getBadgeCount(divers.filter { $0.id != mainDiver.id }))명 만났습니다."
+            )
+            .font(.caption)
         }
         .onAppear {
             withAnimation(.linear(duration: 0.5)) {
@@ -73,7 +83,23 @@ struct BadgeDetailView: View {
 
 #Preview {
     @Previewable @Namespace var namespace
+    @Previewable @State var mainDiver = Diver("Main Diver", isDefaultInfo: true)
 
-    BadgeDetailView(badge: Badge.badges[5], namespace: namespace)
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Diver.self, configurations: config)
+
+    container.mainContext.insert(mainDiver)
+
+    for i in 1..<10 {
+        let diver = Diver("Test \(i)", isDefaultInfo: true)
+        container.mainContext.insert(diver)
+    }
+
+    return BadgeDetailView(
+        mainDiver: $mainDiver,
+        badge: Badge.badges[5],
+        namespace: namespace
+    )
         .preferredColorScheme(.dark)
+        .modelContainer(container)
 }

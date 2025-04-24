@@ -1,5 +1,5 @@
 {
-  "originHash" : "4845271d9c1acad1a63ff048eb28e3588367945b6ee32fe92183b693ebd23411",
+  "originHash" : "dd471f7a82c730815d40ebc8f004e5b370d8238b22da183c460d280ba97ba023",
   "pins" : [
     {
       "identity" : "elegant-emoji-picker",
@@ -8,6 +8,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "daac3cd0a2c29d05f596eb9899e6276910493c02"
+      }
+    },
+    {
+      "identity" : "swiftui-multicolorgradient",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ArthurGuibert/SwiftUI-MulticolorGradient",
+      "state" : {
+        "branch" : "main",
+        "revision" : "6f80da646b607d2e3cbacc259eb41f2912ea6e4f"
       }
     }
   ],

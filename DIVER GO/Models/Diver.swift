@@ -49,12 +49,51 @@ struct DiverInfo: Identifiable, Codable, Hashable {
     }
 }
 
+enum Colors: String, Codable, CaseIterable {
+    case red
+    case orange
+    case yellow
+    case green
+    case blue
+    case purple
+    case pink
+    case gray
+    case brown
+    case black
+    
+    var toColor: Color {
+        switch self {
+        case .red:
+            return .red
+        case .orange:
+            return .orange
+        case .yellow:
+            return .yellow
+        case .green:
+            return .green
+        case .blue:
+            return .blue
+        case .purple:
+            return .purple
+        case .pink:
+            return .pink
+        case .gray:
+            return .gray
+        case .brown:
+            return .brown
+        case .black:
+            return .black
+        }
+    }
+}
+
 @Model
 class Diver: Codable {
     enum CodingKeys: CodingKey {
         case id
         case nickname
         case emoji
+        case color
         case infoList
         case createdAt
         case updatedAt
@@ -63,6 +102,7 @@ class Diver: Codable {
     var id = UUID()
     var nickname: String
     var emoji: String
+    var color: Colors = Colors.yellow
     var infoList: [DiverInfo] = []
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
@@ -88,6 +128,7 @@ class Diver: Codable {
         id: UUID = UUID(),
         nickname: String,
         emoji: String,
+        color: Colors,
         infoList: [DiverInfo] = [],
         createdAt: Date = Date(),
         updatedAt: Date = Date()
@@ -95,6 +136,7 @@ class Diver: Codable {
         self.id = id
         self.nickname = nickname
         self.emoji = emoji
+        self.color = color
         self.infoList = infoList
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -105,6 +147,7 @@ class Diver: Codable {
         self.id = try container.decode(UUID.self, forKey: .id)
         self.nickname = try container.decode(String.self, forKey: .nickname)
         self.emoji = try container.decode(String.self, forKey: .emoji)
+        self.color = try container.decode(Colors.self, forKey: .color)
         self.infoList = try container.decode(
             [DiverInfo].self,
             forKey: .infoList
@@ -118,6 +161,7 @@ class Diver: Codable {
         try container.encode(id, forKey: .id)
         try container.encode(nickname, forKey: .nickname)
         try container.encode(emoji, forKey: .emoji)
+        try container.encode(color, forKey: .color)
         try container.encode(infoList, forKey: .infoList)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encode(updatedAt, forKey: .updatedAt)

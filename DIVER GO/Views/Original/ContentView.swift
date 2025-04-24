@@ -5,10 +5,10 @@
 //  Created by 정희균 on 4/14/25.
 //
 
+import GameKit
 import SwiftData
 import SwiftUI
 import UserNotifications
-import GameKit
 
 enum OnboardingState: Int {
     case required
@@ -25,7 +25,6 @@ struct ContentView: View {
     @Query private var divers: [Diver]
 
     @State private var mainDiver = Diver("", isDefaultInfo: true)
-
     @State private var selectedDiver: Diver?
 
     var body: some View {
@@ -180,7 +179,23 @@ struct ContentView: View {
 
                         triggerDateComponents.hour = 9
                         triggerDateComponents.minute = 0
-                        
+
+                        #if DEBUG
+                            triggerDateComponents = Calendar.current
+                                .dateComponents(
+                                    [
+                                        .year, .month, .day, .hour, .minute,
+                                        .second,
+                                    ],
+                                    from: Calendar.current
+                                        .date(
+                                            byAdding: .second,
+                                            value: 5,
+                                            to: Date()
+                                        )!
+                                )
+                        #endif
+
                         let trigger = UNCalendarNotificationTrigger(
                             dateMatching: triggerDateComponents,
                             repeats: false
@@ -207,7 +222,7 @@ struct ContentView: View {
             }
         }
     }
-    
+
     func authenticateUser() {
         GKLocalPlayer.local.authenticateHandler = { vc, error in
             guard error == nil else {

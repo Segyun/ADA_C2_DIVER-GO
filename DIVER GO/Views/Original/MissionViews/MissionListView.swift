@@ -46,7 +46,7 @@ struct MissionListView: View {
             lastMissionDate = Date()
             lastMissionDiverID =
                 divers.filter { $0.id != mainDiver.id }.stableRandom()?.id
-                    .uuidString
+                .uuidString
         }
     }
 
@@ -156,7 +156,11 @@ struct MissionListView: View {
                         selectedBadge = nil
                     }
 
-                    BadgeDetailView(badge: badge, namespace: namespace)
+                    BadgeDetailView(
+                        mainDiver: $mainDiver,
+                        badge: badge,
+                        namespace: namespace
+                    )
                 }
                 .toolbar(.hidden)
                 .navigationTransition(.zoom(sourceID: badge.id, in: namespace))
@@ -263,7 +267,7 @@ struct BadgeItemView: View {
                             .colorMultiply(badge.tintColor)
                             .brightness(0.1)
                         if badge.category == .mbti,
-                           let mbti = badge.infoDescription
+                            let mbti = badge.infoDescription
                         {
                             Text(mbti)
                                 .font(.system(size: 20))
@@ -333,7 +337,7 @@ struct BadgeHeaderView: View {
 
     container.mainContext.insert(mainDiver)
 
-    for i in 1 ..< 10 {
+    for i in 1..<10 {
         let diver = Diver("Test \(i)", isDefaultInfo: true)
         container.mainContext.insert(diver)
     }
