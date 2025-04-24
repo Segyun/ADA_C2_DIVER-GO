@@ -24,7 +24,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var context
     @Query private var divers: [Diver]
 
-    @State private var mainDiver = Diver("", isDefaultInfo: true)
+    @State private var mainDiver = Diver()
     @State private var selectedDiver: Diver?
 
     var body: some View {
@@ -237,8 +237,7 @@ struct ContentView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Diver.self, configurations: config)
 
-    for i in 1..<10 {
-        let diver = Diver("Test \(i)", isDefaultInfo: true)
+    for diver in Diver.builtins {
         container.mainContext.insert(diver)
     }
 

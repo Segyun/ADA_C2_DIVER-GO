@@ -29,8 +29,7 @@ struct DIVER_GOApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .preferredColorScheme(.dark)
+            MainView()
         }
         .modelContainer(for: Diver.self)
     }

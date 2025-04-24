@@ -9,126 +9,136 @@ import MulticolorGradient
 import SwiftUI
 
 struct DiverList: View {
-    @Namespace private var namespace
+    var namespace: Namespace.ID
+    let mainDiver: Diver
     let divers: [Diver]
+    @Binding var selectedDiver: Diver?
+
     var body: some View {
-        NavigationStack {
-            ZStack {
-                //                        LinearGradient(
-                //                            colors: [.C_1, .C_4],
-                //                            startPoint: .top,
-                //                            endPoint: .bottom
-                //                        )
-                //            .ignoresSafeArea()
-                //                Color(hex: 0x8d99ae)
-                //                    .clipShape(RoundedRectangle(cornerRadius: 48))
-                //                    .ignoresSafeArea()
+        ZStack {
+            MulticolorGradient {
+                ColorStop(
+                    position: .topLeading,
+                    color: mainDiver.color.toColor.mix(with: .red, by: 0.7)
+                )
+                ColorStop(
+                    position: .trailing,
+                    color: mainDiver.color.toColor
+                )
+                ColorStop(
+                    position: .bottomLeading,
+                    color: mainDiver.color.toColor.mix(with: .blue, by: 0.7)
+                )
+            }
+            .scaleEffect(1.1)
+            .opacity(0.5)
+            .ignoresSafeArea()
 
-                MulticolorGradient {
-                    ColorStop(position: .topLeading, color: .C_1)
-                    ColorStop(position: .trailing, color: .red)
-                    ColorStop(position: .bottomTrailing, color: .C_2)
-                }
-                .opacity(0.5)
-                .ignoresSafeArea()
-
-                ScrollView {
-                    LazyVGrid(columns: Array(repeating: GridItem(), count: 3)) {
-                        ForEach(divers) { diver in
-                            NavigationLink {
-                                DiverCardDetailView(diver: .constant(diver))
-                                    .navigationTransition(
-                                        .zoom(sourceID: diver.id, in: namespace)
-                                    )
-                                    .toolbarVisibility(.hidden)
-
-                            } label: {
-                                DiverCardView(diver: diver)
-                                    .matchedTransitionSource(
-                                        id: diver.id,
-                                        in: namespace
-                                    )
-                                    .foregroundStyle(Color(.label))
-                            }
-                        }
-
-                    }
-                    .compositingGroup()
-                    .shadow(color: .gray.opacity(0.2), radius: 8)
-                    .padding()
-                    .padding(.top, 64)
-                }
-
-                Text("DIVER GO")
-                    .font(.system(.largeTitle, design: .rounded))
-                    .bold()
-                    .glassOpacity()
-                    .padding(.bottom, 32)
-                    .frame(
-                        maxWidth: .infinity,
-                        maxHeight: 152,
-                        alignment: .bottom
-                    )
-                    .background(.ultraThinMaterial)
-                    .mask {
-                        LinearGradient(
-                            stops: [
-                                .init(color: .black, location: 0),
-                                .init(color: .black, location: 0.8),
-                                .init(color: .clear, location: 1),
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    }
-                    .ignoresSafeArea(.container)
-                    .frame(maxHeight: .infinity, alignment: .top)
-
-                HStack {
-                    let diver = Diver.builtin
-                    NavigationLink {
-                        DiverCardDetailView(diver: .constant(diver))
-                            .navigationTransition(
-                                .zoom(sourceID: diver.id, in: namespace)
-                            )
-                            .toolbarVisibility(.hidden)
-
-                    } label: {
-                        Text("🍋")
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.1)
-                            .frame(width: 32, height: 32)
-                            .background(.regularMaterial, in: Circle())
+            ScrollView {
+                LazyVGrid(columns: Array(repeating: GridItem(), count: 3)) {
+                    ForEach(divers) { diver in
+                        //                        NavigationLink {
+                        //                            DiverCardDetailView(diver: diver)
+                        //                                .navigationTransition(
+                        //                                    .zoom(sourceID: diver.id, in: namespace)
+                        //                                )
+                        //                                .toolbarVisibility(.hidden)
+                        //
+                        //                        } label: {
+                        DiverCardView(diver: diver)
                             .matchedTransitionSource(
                                 id: diver.id,
                                 in: namespace
                             )
-                    }
-                    Spacer()
-                    ShareLink(
-                        item: Diver.builtin.toURL(),
-                        preview: SharePreview("DIVER GO")
-                    ) {
-                        Image(systemName: "square.and.arrow.up")
                             .foregroundStyle(Color(.label))
-                            .bold()
-                            .glassOpacity()
+                            .onTapGesture {
+                                selectedDiver = diver
+                            }
+                        //                        }
                     }
+
                 }
+                .compositingGroup()
+                .shadow(color: .gray.opacity(0.2), radius: 8)
+                .padding()
+                .padding(.top, 64)
+                .padding(.bottom, 64)
+            }
+
+            Text("DIVER GO")
+                .font(.system(.largeTitle, design: .rounded))
+                .bold()
+                .glassOpacity()
+                .padding(.bottom, 32)
                 .frame(
                     maxWidth: .infinity,
-                    maxHeight: .infinity,
-                    alignment: .top
+                    maxHeight: 152,
+                    alignment: .bottom
                 )
-                .padding(24)
+                .background {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .mask {
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .black, location: 0),
+                                    .init(color: .black, location: 0.7),
+                                    .init(color: .clear, location: 1),
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        }
+                }
+                .ignoresSafeArea(.container)
+                .frame(maxHeight: .infinity, alignment: .top)
+
+            HStack {
+                Text("🍋")
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.1)
+                    .frame(width: 32, height: 32)
+                    .background(.regularMaterial, in: Circle())
+                    .matchedTransitionSource(
+                        id: mainDiver.id,
+                        in: namespace
+                    )
+                    .glassShadow()
+                    .onTapGesture {
+                        selectedDiver = mainDiver
+                    }
+                Spacer()
+                ShareLink(
+                    item: Diver.builtin.toURL(),
+                    preview: SharePreview("DIVER GO")
+                ) {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(Color(.label))
+                        .bold()
+                        .glassOpacity()
+                }
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .top
+            )
+            .padding(24)
         }
     }
 }
 
 #Preview {
-    DiverList(divers: Diver.builtins + Diver.builtins + Diver.builtins)
+    @Previewable @Namespace var namespace
+
+    return NavigationStack {
+        DiverList(
+            namespace: namespace,
+            mainDiver: .builtin,
+            divers: Diver.builtins + Diver.builtins + Diver.builtins,
+            selectedDiver: .constant(nil)
+        )
+    }
 }
 
 extension Color {
@@ -144,7 +154,7 @@ extension Color {
 struct GlassShadow: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .shadow(color: .gray.opacity(0.2), radius: 8)
+            .shadow(color: .black.opacity(0.1), radius: 8)
     }
 }
 
@@ -203,16 +213,19 @@ struct DiverCardView: View {
                 //                                    }
                 //                                }
                 //                                .scrollIndicators(.hidden)
-                Text("INFJ")
-                    .font(.caption)
-                    .opacity(0.6)
-                    .padding(8)
-                    .background(
-                        .thickMaterial,
-                        in: RoundedRectangle(
-                            cornerRadius: 8
+                if let mbti = diver.infoList.first(where: { $0.title == "MBTI" }
+                ) {
+                    Text(mbti.description.isEmpty ? "MBTI" : mbti.description)
+                        .font(.caption)
+                        .opacity(0.6)
+                        .padding(8)
+                        .background(
+                            .thickMaterial,
+                            in: RoundedRectangle(
+                                cornerRadius: 8
+                            )
                         )
-                    )
+                }
             }
         }
         .padding()
@@ -260,12 +273,11 @@ struct DiverCardView: View {
 }
 
 struct DiverCardDetailView: View {
-    @Binding var diver: Diver
+    @Bindable var diver: Diver
+    let isEditAvailable = true
+    let isShowingToolBar = true
 
     @Environment(\.dismiss) private var dismiss
-
-    let isEditAvailable = true
-
     @State private var isEditing = true
 
     var body: some View {
@@ -305,7 +317,7 @@ struct DiverCardDetailView: View {
                             .thickMaterial,
                             in: Circle()
                         )
-                        .shadow(color: .gray.opacity(0.2), radius: 8)
+                        .glassShadow()
                         .overlay {
                             if isEditing {
                                 Button {
@@ -319,14 +331,14 @@ struct DiverCardDetailView: View {
 
                                 }
                                 .offset(x: 72, y: 72)
-                                .shadow(color: .gray.opacity(0.2), radius: 8)
+                                .glassShadow()
                             }
                         }
 
                     TextField("닉네임을 입력해주세요.", text: $diver.nickname)
                         .font(.system(.largeTitle, design: .rounded))
                         .bold()
-                        .opacity(0.7)
+                        .glassOpacity()
                         .padding(.bottom, 32)
                         .multilineTextAlignment(.center)
                         .disabled(!isEditing)
@@ -337,10 +349,7 @@ struct DiverCardDetailView: View {
                                 Circle()
                                     .fill(color.toColor)
                                     .frame(width: 28)
-                                    .shadow(
-                                        color: .gray.opacity(0.2),
-                                        radius: 8
-                                    )
+                                    .glassShadow()
                                     .overlay {
                                         if diver.color == color {
                                             Circle()
@@ -366,7 +375,7 @@ struct DiverCardDetailView: View {
                             HStack {
                                 Text(wrappedInfo.title)
                                     .font(.headline)
-                                    .opacity(0.7)
+                                    .glassOpacity()
                                 Spacer()
                                 TextField(
                                     wrappedInfo.title,
@@ -383,45 +392,51 @@ struct DiverCardDetailView: View {
                         }
                     }
                     .compositingGroup()
-                    .shadow(color: .gray.opacity(0.2), radius: 8)
+                    .glassShadow()
                 }
                 .padding()
                 .padding(.top, 80)
             }
 
-            HStack {
-                if isEditAvailable {
-                    Button {
-                        withAnimation {
-                            isEditing.toggle()
+            if isShowingToolBar {
+                HStack {
+                    if isEditAvailable {
+                        Button {
+                            withAnimation {
+                                isEditing.toggle()
+                            }
+                        } label: {
+                            Image(systemName: "pencil")
+                                .foregroundStyle(.gray)
+                                .padding(8)
+                                .background(Circle().fill(.regularMaterial))
                         }
+                        .glassShadow()
+                    }
+                    
+                    Button {
+                        dismiss()
                     } label: {
-                        Image(systemName: "pencil")
+                        Image(systemName: "xmark")
                             .foregroundStyle(.gray)
                             .padding(8)
                             .background(Circle().fill(.regularMaterial))
+                            .glassShadow()
                     }
                 }
-
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .foregroundStyle(.gray)
-                        .padding(8)
-                        .background(Circle().fill(.regularMaterial))
-                }
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity,
+                    alignment: .topTrailing
+                )
+                .padding()
             }
-            .frame(
-                maxWidth: .infinity,
-                maxHeight: .infinity,
-                alignment: .topTrailing
-            )
-            .padding()
         }
     }
 }
 
 #Preview {
-    DiverCardDetailView(diver: .constant(Diver.builtin))
+    @Previewable @State var diver = Diver.builtin
+
+    return DiverCardDetailView(diver: diver)
 }

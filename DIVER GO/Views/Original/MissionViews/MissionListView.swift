@@ -330,15 +330,14 @@ struct BadgeHeaderView: View {
 }
 
 #Preview {
-    @Previewable @State var mainDiver = Diver("Main Diver", isDefaultInfo: true)
+    @Previewable @State var mainDiver = Diver.builtin
 
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Diver.self, configurations: config)
 
     container.mainContext.insert(mainDiver)
 
-    for i in 1..<10 {
-        let diver = Diver("Test \(i)", isDefaultInfo: true)
+    for diver in Diver.builtins {
         container.mainContext.insert(diver)
     }
 

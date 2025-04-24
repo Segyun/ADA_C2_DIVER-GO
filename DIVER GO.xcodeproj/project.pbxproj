@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		E3AC47022DB4BBAA001D1677 /* ElegantEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = E3AC47012DB4BBAA001D1677 /* ElegantEmojiPicker */; };
 		E3AC47842DB9339F001D1677 /* MulticolorGradient in Frameworks */ = {isa = PBXBuildFile; productRef = E3AC47832DB9339F001D1677 /* MulticolorGradient */; };
+		E3AC47902DB9CE87001D1677 /* MCEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = E3AC478F2DB9CE87001D1677 /* MCEmojiPicker */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 			files = (
 				E3AC47842DB9339F001D1677 /* MulticolorGradient in Frameworks */,
 				E3AC47022DB4BBAA001D1677 /* ElegantEmojiPicker in Frameworks */,
+				E3AC47902DB9CE87001D1677 /* MCEmojiPicker in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,6 +76,7 @@
 			packageProductDependencies = (
 				E3AC47012DB4BBAA001D1677 /* ElegantEmojiPicker */,
 				E3AC47832DB9339F001D1677 /* MulticolorGradient */,
+				E3AC478F2DB9CE87001D1677 /* MCEmojiPicker */,
 			);
 			productName = "DIVER GO";
 			productReference = E38851DD2DAD3A4C00EE477F /* DIVER GO.app */;
@@ -145,6 +148,7 @@
 			packageReferences = (
 				E3AC47002DB4BBAA001D1677 /* XCRemoteSwiftPackageReference "Elegant-Emoji-Picker" */,
 				E3AC47822DB9339F001D1677 /* XCRemoteSwiftPackageReference "SwiftUI-MulticolorGradient" */,
+				E3AC478E2DB9CE87001D1677 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E38851DE2DAD3A4C00EE477F /* Products */;
@@ -416,6 +420,14 @@
 				kind = branch;
 			};
 		};
+		E3AC478E2DB9CE87001D1677 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/izyumkin/MCEmojiPicker";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -428,6 +440,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E3AC47822DB9339F001D1677 /* XCRemoteSwiftPackageReference "SwiftUI-MulticolorGradient" */;
 			productName = MulticolorGradient;
+		};
+		E3AC478F2DB9CE87001D1677 /* MCEmojiPicker */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E3AC478E2DB9CE87001D1677 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */;
+			productName = MCEmojiPicker;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -37,7 +37,7 @@ struct DiverDetailView: View {
 }
 
 #Preview {
-    @Previewable @State var mainDiver = Diver("", isDefaultInfo: true)
+    @Previewable @State var mainDiver = Diver.builtin
 
     return DiverDetailView(
         mainDiver: $mainDiver,

@@ -110,11 +110,14 @@ class Diver: Codable {
     init() {
         self.nickname = ""
         self.emoji = ""
+        self.infoList = DiverInfo.defaultInfo
+        self.createdAt = Date()
+        self.updatedAt = Date()
     }
 
-    init(_ nickname: String, isDefaultInfo: Bool = true) {
+    init(_ nickname: String, emoji: String, isDefaultInfo: Bool = true) {
         self.nickname = nickname
-        self.emoji = ""
+        self.emoji = emoji
         if isDefaultInfo {
             self.infoList = DiverInfo.defaultInfo
         } else {
@@ -221,18 +224,18 @@ class Diver: Codable {
         return .C_5
     }
 
-    static var builtin: Diver { Diver("Lemon") }
+    static var builtin: Diver { Diver("Lemon", emoji: "🍋") }
 
     static var builtins: [Diver] {
         [
-            Diver("Lemon"),
-            Diver("Apple"),
-            Diver("Banana"),
-            Diver("Grape"),
-            Diver("Orange"),
-            Diver("Peach"),
-            Diver("Watermelon"),
-            Diver("Pineapple"),
+            Diver("Lemon", emoji: "🍋"),
+            Diver("Apple", emoji: "🍎"),
+            Diver("Banana", emoji: "🍌"),
+            Diver("Grape", emoji: "🍇"),
+            Diver("Orange", emoji: "🍊"),
+            Diver("Peach", emoji: "🍑"),
+            Diver("Watermelon", emoji: "🍉"),
+            Diver("Pineapple", emoji: "🍍"),
         ]
     }
 }
