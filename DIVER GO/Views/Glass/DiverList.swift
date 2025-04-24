@@ -5,46 +5,27 @@
 //  Created by 정희균 on 4/23/25.
 //
 
+import MCEmojiPicker
 import MulticolorGradient
+import SwiftData
 import SwiftUI
 
 struct DiverList: View {
-    var namespace: Namespace.ID
-    let mainDiver: Diver
-    let divers: [Diver]
+    let namespace: Namespace.ID
+    @Binding var mainDiver: Diver
     @Binding var selectedDiver: Diver?
+
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Diver.nickname) private var divers: [Diver]
+    @State private var isEditing = false
 
     var body: some View {
         ZStack {
-            MulticolorGradient {
-                ColorStop(
-                    position: .topLeading,
-                    color: mainDiver.color.toColor.mix(with: .red, by: 0.7)
-                )
-                ColorStop(
-                    position: .trailing,
-                    color: mainDiver.color.toColor
-                )
-                ColorStop(
-                    position: .bottomLeading,
-                    color: mainDiver.color.toColor.mix(with: .blue, by: 0.7)
-                )
-            }
-            .scaleEffect(1.1)
-            .opacity(0.5)
-            .ignoresSafeArea()
+            GradientBackgroundView(diver: mainDiver)
 
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(), count: 3)) {
-                    ForEach(divers) { diver in
-                        //                        NavigationLink {
-                        //                            DiverCardDetailView(diver: diver)
-                        //                                .navigationTransition(
-                        //                                    .zoom(sourceID: diver.id, in: namespace)
-                        //                                )
-                        //                                .toolbarVisibility(.hidden)
-                        //
-                        //                        } label: {
+                    ForEach(divers.filter { $0.id != mainDiver.id }) { diver in
                         DiverCardView(diver: diver)
                             .matchedTransitionSource(
                                 id: diver.id,
@@ -54,7 +35,20 @@ struct DiverList: View {
                             .onTapGesture {
                                 selectedDiver = diver
                             }
-                        //                        }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    UNUserNotificationCenter
+                                        .current()
+                                        .removeDeliveredNotifications(
+                                            withIdentifiers: [
+                                                diver.id.uuidString
+                                            ]
+                                        )
+                                    modelContext.delete(diver)
+                                } label: {
+                                    Label("삭제하기", systemImage: "trash")
+                                }
+                            }
                     }
 
                 }
@@ -76,41 +70,72 @@ struct DiverList: View {
                     alignment: .bottom
                 )
                 .background {
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .mask {
-                            LinearGradient(
-                                stops: [
-                                    .init(color: .black, location: 0),
-                                    .init(color: .black, location: 0.7),
-                                    .init(color: .clear, location: 1),
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        }
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 30,
+                        topTrailingRadius: 30
+                    )
+                    .fill(.ultraThinMaterial)
+                    .mask {
+                        LinearGradient(
+                            stops: [
+                                .init(color: .black, location: 0),
+                                .init(color: .black, location: 0.7),
+                                .init(color: .clear, location: 1),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
                 }
                 .ignoresSafeArea(.container)
                 .frame(maxHeight: .infinity, alignment: .top)
 
+            if divers.isEmpty {
+                Text("다른 다이버를 만나볼까요?")
+                    .glassOpacity()
+            }
+
             HStack {
-                Text("🍋")
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.1)
+                Circle()
+                    .fill(.regularMaterial)
                     .frame(width: 32, height: 32)
-                    .background(.regularMaterial, in: Circle())
+                    .overlay {
+                        if mainDiver.emoji.isEmpty {
+                            Image(.diver)
+                                .resizable()
+                                .scaledToFit()
+                                .padding(8)
+                        } else {
+                            Text(mainDiver.emoji)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.1)
+                        }
+                    }
                     .matchedTransitionSource(
                         id: mainDiver.id,
                         in: namespace
                     )
-                    .glassShadow()
                     .onTapGesture {
                         selectedDiver = mainDiver
                     }
+                    .glassShadow()
                 Spacer()
                 ShareLink(
-                    item: Diver.builtin.toURL(),
-                    preview: SharePreview("DIVER GO")
+                    item: mainDiver.toURL(),
+                    preview: SharePreview(
+                        mainDiver.nickname,
+                        image: mainDiver.emoji.isEmpty
+                            ? Image(.diver)
+                            : Image(
+                                uiImage: ImageRenderer(
+                                    content: Text(
+                                        mainDiver.emoji
+                                    )
+                                    .font(.system(size: 1024))
+
+                                ).uiImage!
+                            )
+                    )
                 ) {
                     Image(systemName: "square.and.arrow.up")
                         .foregroundStyle(Color(.label))
@@ -125,20 +150,40 @@ struct DiverList: View {
             )
             .padding(24)
         }
+        .navigationDestination(item: $selectedDiver) { diver in
+            DiverCardDetailView(
+                diver: diver,
+                isEditing: $isEditing,
+                isEditAvailable: diver.id == mainDiver.id
+            )
+            .navigationTransition(
+                .zoom(sourceID: diver.id, in: namespace)
+            )
+            .toolbarVisibility(.hidden)
+        }
     }
 }
 
 #Preview {
     @Previewable @Namespace var namespace
+    @Previewable @State var mainDiver = Diver.builtin
+    @Previewable @State var selectedDiver: Diver?
+
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Diver.self, configurations: config)
+
+    //    for diver in Diver.builtins {
+    //        container.mainContext.insert(diver)
+    //    }
 
     return NavigationStack {
         DiverList(
             namespace: namespace,
-            mainDiver: .builtin,
-            divers: Diver.builtins + Diver.builtins + Diver.builtins,
-            selectedDiver: .constant(nil)
+            mainDiver: $mainDiver,
+            selectedDiver: $selectedDiver
         )
     }
+    .modelContainer(container)
 }
 
 extension Color {
@@ -180,78 +225,56 @@ struct DiverCardView: View {
 
     var body: some View {
         VStack {
-            Text(diver.emoji.isEmpty ? "🍋" : diver.emoji)
-                .font(.largeTitle)
-                .padding()
-                .background(.ultraThickMaterial, in: Circle())
-                .padding(.bottom)
-            //                                .shadow(color: .C_1.opacity(0.5), radius: 16)
+            Circle()
+                .fill(.ultraThickMaterial)
+                .frame(width: 72)
+                .overlay {
+                    if diver.emoji.isEmpty {
+                        Image(.diver)
+                            .resizable()
+                            .scaledToFit()
+                            .padding()
+                    } else {
+                        Text(diver.emoji)
+                            .font(.system(size: 32))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.1)
+                    }
+                }
 
             VStack(alignment: .center) {
                 Text(diver.nickname)
-                    //                    .font(.headline)
                     .font(.system(.headline, design: .rounded))
                     .opacity(0.7)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
-                //                                    .padding(.top)
-                //                                ScrollView(.horizontal) {
-                //
-                //                                    LazyHStack {
-                //                                        ForEach(diver.infoList) { info in
-                //                                            Text("MBTI")
-                //                                                .font(.caption)
-                //                                                .opacity(0.6)
-                //                                                .padding(8)
-                //                                                .background(
-                //                                                    .thickMaterial,
-                //                                                    in: RoundedRectangle(
-                //                                                        cornerRadius: 8
-                //                                                    )
-                //                                                )
-                //                                        }
-                //                                    }
-                //                                }
-                //                                .scrollIndicators(.hidden)
-                if let mbti = diver.infoList.first(where: { $0.title == "MBTI" }
+                if let session = diver.infoList.first(where: {
+                    $0.title == "세션"
+                }
                 ) {
-                    Text(mbti.description.isEmpty ? "MBTI" : mbti.description)
-                        .font(.caption)
-                        .opacity(0.6)
-                        .padding(8)
-                        .background(
-                            .thickMaterial,
-                            in: RoundedRectangle(
-                                cornerRadius: 8
-                            )
+                    Text(
+                        session.description.isEmpty ? "세션" : session.description
+                    )
+                    .font(.caption)
+                    .opacity(0.6)
+                    .padding(8)
+                    .background(
+                        .thickMaterial,
+                        in: RoundedRectangle(
+                            cornerRadius: 8
                         )
+                    )
                 }
             }
         }
         .padding()
         .frame(maxWidth: .infinity)
-        //                        .background(
-        //                            .ultraThinMaterial,
-        //                           in: RoundedRectangle(cornerRadius: 20)
-        //                        )
-        //                        .background {
-        //                            Circle()
-        //                                .fill(.C_1)
-        //                                .frame(width: 100)
-        //                                .offset(x: -20, y: -30)
-        //                            Circle()
-        //                                .fill(.C_1.opacity(0.5))
-        //                                .frame(width: 100)
-        //                                .offset(x: 20, y: 30)
-        //                        }
-        //                        .clipShape(RoundedRectangle(cornerRadius: 20))
         .background {
             VStack(spacing: 0) {
                 Circle()
                     .fill(diver.color.toColor)
                     .frame(width: 48)
                     .offset(y: -40)
-                //                                Color.clear
             }
             VStack(spacing: 0) {
                 Color.clear
@@ -259,68 +282,60 @@ struct DiverCardView: View {
             }
             Rectangle()
                 .fill(.thinMaterial)
-            //                .mask {
-            //                    LinearGradient(
-            //                        colors: [.black, .clear],
-            //                        startPoint: .top,
-            //                        endPoint: .bottom
-            //                    )
-            //                }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-
+        //        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 
 struct DiverCardDetailView: View {
     @Bindable var diver: Diver
-    let isEditAvailable = true
-    let isShowingToolBar = true
+    @Binding var isEditing: Bool
+    var isEditAvailable = false
+    var onboardingMode = false
 
     @Environment(\.dismiss) private var dismiss
-    @State private var isEditing = true
+    @State private var isShowingEmojiPicker = false
+    @State private var isDeletingInfo = false
+    @State private var selectedInfoID: UUID?
 
     var body: some View {
         ZStack {
-            //                VStack(spacing: 0) {
-            //                    Circle()
-            //                        .fill(.green)
-            //                        .frame(width: 256)
-            //                        .offset(x: -128, y: -256)
-            //                    //                                Color.clear
-            //                        .blur(radius: 32)
-            ////                        .opacity(0.7)
-            //                }
-            MulticolorGradient {
-                ColorStop(
-                    position: .topLeading,
-                    color: diver.color.toColor.mix(with: .red, by: 0.7)
-                )
-                ColorStop(
-                    position: .trailing,
-                    color: diver.color.toColor
-                )
-                ColorStop(
-                    position: .bottomLeading,
-                    color: diver.color.toColor.mix(with: .blue, by: 0.7)
-                )
+            if !onboardingMode {
+                GradientBackgroundView(diver: diver)
             }
-            .opacity(0.5)
-            .ignoresSafeArea()
 
             ScrollView {
                 LazyVStack {
-                    Text(diver.emoji.isEmpty ? "🫥" : diver.emoji)
-                        .font(.system(size: 128))
-                        .padding(32)
-                        .background(
-                            .thickMaterial,
-                            in: Circle()
-                        )
+                    Circle()
+                        .fill(.regularMaterial)
+                        .frame(width: 200)
+                        .overlay {
+                            if diver.emoji.isEmpty {
+                                Image(.diver)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .padding(32)
+                            } else {
+                                Text(diver.emoji)
+                                    .font(.system(size: 128))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.1)
+                            }
+                        }
                         .glassShadow()
                         .overlay {
                             if isEditing {
                                 Button {
+                                    UIApplication.shared.sendAction(
+                                        #selector(
+                                            UIResponder.resignFirstResponder
+                                        ),
+                                        to: nil,
+                                        from: nil,
+                                        for: nil
+                                    )
+                                    isShowingEmojiPicker = true
                                 } label: {
                                     Image(systemName: "pencil.circle.fill")
                                         .resizable()
@@ -334,6 +349,10 @@ struct DiverCardDetailView: View {
                                 .glassShadow()
                             }
                         }
+                        .emojiPicker(
+                            isPresented: $isShowingEmojiPicker,
+                            selectedEmoji: $diver.emoji
+                        )
 
                     TextField("닉네임을 입력해주세요.", text: $diver.nickname)
                         .font(.system(.largeTitle, design: .rounded))
@@ -373,9 +392,26 @@ struct DiverCardDetailView: View {
                         ForEach($diver.infoList) { info in
                             let wrappedInfo = info.wrappedValue
                             HStack {
-                                Text(wrappedInfo.title)
+                                if isEditing {
+                                    Button {
+                                        selectedInfoID = info.id
+                                        isDeletingInfo = true
+                                    } label: {
+                                        Image(systemName: "minus.circle.fill")
+                                            .foregroundStyle(
+                                                wrappedInfo.isRequired
+                                                    ? .gray : .red
+                                            )
+                                    }
+                                    .disabled(wrappedInfo.isRequired)
+                                    .glassOpacity()
+                                }
+                                TextField(wrappedInfo.title, text: info.title)
                                     .font(.headline)
                                     .glassOpacity()
+                                    .disabled(
+                                        !isEditing || wrappedInfo.isRequired
+                                    )
                                 Spacer()
                                 TextField(
                                     wrappedInfo.title,
@@ -390,15 +426,34 @@ struct DiverCardDetailView: View {
                                 in: RoundedRectangle(cornerRadius: 20)
                             )
                         }
+                        if isEditing {
+                            Button {
+                                withAnimation {
+                                    diver.infoList.append(DiverInfo("제목"))
+                                }
+                            } label: {
+                                Label("추가하기", systemImage: "plus")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .foregroundStyle(diver.color.toColor)
+                                    .glassOpacity()
+                                    .padding()
+                                    .background(
+                                        .regularMaterial,
+                                        in: RoundedRectangle(cornerRadius: 20)
+                                    )
+                            }
+                        }
                     }
                     .compositingGroup()
                     .glassShadow()
                 }
                 .padding()
                 .padding(.top, 80)
+                .padding(.bottom, onboardingMode ? 80 : 0)
             }
 
-            if isShowingToolBar {
+            if !onboardingMode {
                 HStack {
                     if isEditAvailable {
                         Button {
@@ -406,14 +461,24 @@ struct DiverCardDetailView: View {
                                 isEditing.toggle()
                             }
                         } label: {
-                            Image(systemName: "pencil")
-                                .foregroundStyle(.gray)
-                                .padding(8)
-                                .background(Circle().fill(.regularMaterial))
+                            Image(
+                                systemName: isEditing ? "checkmark" : "pencil"
+                            )
+                            .foregroundStyle(isEditing ? .white : .gray)
+                            .padding(8)
+                            .background {
+                                if isEditing {
+                                    Circle()
+                                        .fill(.green)
+                                } else {
+                                    Circle()
+                                        .fill(.regularMaterial)
+                                }
+                            }
                         }
                         .glassShadow()
                     }
-                    
+
                     Button {
                         dismiss()
                     } label: {
@@ -432,11 +497,56 @@ struct DiverCardDetailView: View {
                 .padding()
             }
         }
+        .alert(
+            "선택한 정보를 삭제하시겠습니까?",
+            isPresented: $isDeletingInfo
+        ) {
+            Button("삭제", role: .destructive) {
+                if let selectedInfoID {
+                    withAnimation {
+                        diver.infoList.removeAll { info in
+                            info.id == selectedInfoID
+                        }
+                    }
+                }
+            }
+        }
+        .onDisappear {
+            isEditing = false
+        }
     }
 }
 
 #Preview {
     @Previewable @State var diver = Diver.builtin
+    @Previewable @State var isEditing = false
 
-    return DiverCardDetailView(diver: diver)
+    return DiverCardDetailView(
+        diver: diver,
+        isEditing: $isEditing
+    )
+}
+
+struct GradientBackgroundView: View {
+    let diver: Diver
+
+    var body: some View {
+        MulticolorGradient {
+            ColorStop(
+                position: .topLeading,
+                color: diver.color.toColor.mix(with: .red, by: 0.7)
+            )
+            ColorStop(
+                position: .trailing,
+                color: diver.color.toColor
+            )
+            ColorStop(
+                position: .bottomLeading,
+                color: diver.color.toColor.mix(with: .blue, by: 0.7)
+            )
+        }
+        .scaleEffect(1.1)
+        .opacity(0.5)
+        .ignoresSafeArea()
+    }
 }

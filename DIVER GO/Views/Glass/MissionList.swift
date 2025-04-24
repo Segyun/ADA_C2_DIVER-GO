@@ -5,13 +5,14 @@
 //  Created by 정희균 on 4/24/25.
 //
 
+import GameKit
 import MulticolorGradient
 import SwiftUI
 
 struct MissionList: View {
     var namespace: Namespace.ID
-    let mainDiver: Diver
-    let divers: [Diver]
+    var mainDiver: Diver
+    var divers: [Diver]
 
     @AppStorage("lastMissionDate") private var lastMissionDate: Date?
     @AppStorage("lastMissionDiverID") private var lastMissionDiverID: String?
@@ -20,23 +21,7 @@ struct MissionList: View {
 
     var body: some View {
         ZStack {
-            MulticolorGradient {
-                ColorStop(
-                    position: .topLeading,
-                    color: mainDiver.color.toColor.mix(with: .red, by: 0.7)
-                )
-                ColorStop(
-                    position: .trailing,
-                    color: mainDiver.color.toColor
-                )
-                ColorStop(
-                    position: .bottomLeading,
-                    color: mainDiver.color.toColor.mix(with: .blue, by: 0.7)
-                )
-            }
-            .scaleEffect(1.1)
-            .opacity(0.5)
-            .ignoresSafeArea()
+            GradientBackgroundView(diver: mainDiver)
 
             ScrollViewReader { proxy in
                 ScrollView {
@@ -79,7 +64,11 @@ struct MissionList: View {
                             columns: Array(repeating: GridItem(), count: 3)
                         ) {
                             ForEach(Badge.badges) { badge in
-                                BadgeCardView(badge: badge)
+                                BadgeCardView(
+                                    badge: badge,
+                                    isCompleted: badge.isCompleted(divers),
+                                    color: mainDiver.color.toColor
+                                )
                                     .matchedTransitionSource(id: badge.id, in: namespace)
                                     .onTapGesture {
                                         selectedBadge = badge
@@ -108,7 +97,10 @@ struct MissionList: View {
                     alignment: .bottom
                 )
                 .background {
-                    Rectangle()
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 30,
+                        topTrailingRadius: 30
+                    )
                         .fill(.ultraThinMaterial)
                         .mask {
                             LinearGradient(
@@ -133,6 +125,39 @@ struct MissionList: View {
             )
             .toolbarVisibility(.hidden)
             .navigationTransition(.zoom(sourceID: badge.id, in: namespace))
+        }
+        .onAppear {
+            GKAccessPoint.shared.isActive = true
+
+            updateRandomDiverMeet()
+        }
+        .onDisappear {
+            GKAccessPoint.shared.isActive = false
+        }
+    }
+    
+    private func updateRandomDiverMeet() {
+        if let lastMissionDate {
+            let dateComponents = Calendar.current.dateComponents(
+                [.year, .month, .day],
+                from: lastMissionDate
+            )
+
+            if dateComponents
+                == Calendar.current.dateComponents(
+                    [.year, .month, .day],
+                    from: Date()
+                )
+            {
+                return
+            }
+        }
+
+        if divers.count > 0 {
+            lastMissionDate = Date()
+            lastMissionDiverID =
+                divers.filter { $0.id != mainDiver.id }.stableRandom()?.id
+                .uuidString
         }
     }
 }
@@ -188,6 +213,8 @@ struct MissionCardView: View {
 
 struct BadgeCardView: View {
     let badge: Badge
+    let isCompleted: Bool
+    let color: Color
 
     var body: some View {
         VStack {
@@ -216,6 +243,7 @@ struct BadgeCardView: View {
             VStack(alignment: .center) {
                 Text(badge.title)
                     .font(.system(.headline, design: .rounded))
+                    .foregroundStyle(isCompleted ? color : Color(.label))
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
                 Text(badge.description)
@@ -242,9 +270,9 @@ struct BadgeCardView: View {
                 .fill(.thinMaterial)
         }
         .clipShape(RoundedRectangle(cornerRadius: 20))
-
     }
 }
+
 struct BadgeCardDetailView: View {
     let namespace: Namespace.ID
     let badge: Badge

@@ -12,6 +12,7 @@ import UserNotifications
 
 struct MainView: View {
     @AppStorage("onboardingState") var onboardingState: OnboardingState =
+        //    @State var onboardingState: OnboardingState =
         .required
     @AppStorage("mainDiverID") var mainDiverID: String?
 
@@ -22,6 +23,7 @@ struct MainView: View {
     @State private var mainDiver = Diver()
     @State private var selectedDiver: Diver?
     @State private var tabState: TabState = .book
+    @State private var appearAnimating = false
 
     enum TabState {
         case book
@@ -31,104 +33,96 @@ struct MainView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                if tabState == .book {
-                    DiverList(
-                        namespace: namespace,
-                        mainDiver: mainDiver,
-                        divers: divers.filter { $0.id != mainDiver.id },
-                        selectedDiver: $selectedDiver
+                if onboardingState == .required {
+                    Onboarding(
+                        onboardingState: $onboardingState,
+                        mainDiver: $mainDiver
                     )
-                    .navigationDestination(item: $selectedDiver) { diver in
-                        DiverCardDetailView(diver: diver)
-                            .navigationTransition(
-                                .zoom(sourceID: diver.id, in: namespace)
+                } else {
+                    Group {
+                        if tabState == .book {
+                            DiverList(
+                                namespace: namespace,
+                                mainDiver: $mainDiver,
+                                selectedDiver: $selectedDiver
                             )
-                            .toolbarVisibility(.hidden)
+                            .transition(.opacity)
+                        } else if tabState == .mission {
+                            MissionList(
+                                namespace: namespace,
+                                mainDiver: mainDiver,
+                                divers: divers.filter { $0.id != mainDiver.id }
+                            )
+                            .transition(.opacity)
+                        }
+                        
+                        HStack {
+                            Label("도감", systemImage: "book.pages")
+                                .padding(8)
+                                .padding(.horizontal, 8)
+                                .background {
+                                    if tabState == .book {
+                                        Capsule()
+                                            .fill(
+                                                mainDiver.color.toColor
+                                            )
+                                            .matchedGeometryEffect(
+                                                id: "button",
+                                                in: namespace
+                                            )
+                                        
+                                    }
+                                }
+                                .foregroundStyle(
+                                    tabState == .book ? .white : .secondary
+                                )
+                                .onTapGesture {
+                                    withAnimation {
+                                        tabState = .book
+                                    }
+                                }
+                            Label("미션", systemImage: "list.bullet.clipboard")
+                                .padding(8)
+                                .padding(.horizontal, 8)
+                                .background {
+                                    if tabState == .mission {
+                                        Capsule()
+                                            .fill(
+                                                mainDiver.color.toColor
+                                            )
+                                            .matchedGeometryEffect(
+                                                id: "button",
+                                                in: namespace
+                                            )
+                                        
+                                    }
+                                }
+                                .foregroundStyle(
+                                    tabState == .mission ? .white : .secondary
+                                )
+                                .onTapGesture {
+                                    withAnimation {
+                                        tabState = .mission
+                                    }
+                                }
+                        }
+                        .font(.callout)
+                        .padding(8)
+                        .background(.regularMaterial, in: Capsule())
+                        .padding(.bottom, 20)
+                        .frame(
+                            maxWidth: .infinity,
+                            maxHeight: .infinity,
+                            alignment: .bottom
+                        )
                     }
-                    .transition(.opacity)
-                } else if tabState == .mission {
-                    MissionList(
-                        namespace: namespace,
-                        mainDiver: mainDiver,
-                        divers: divers
-                    )
-                    .transition(.opacity)
+                    .opacity(appearAnimating ? 1 : 0)
+                    .onAppear {
+                        withAnimation {
+                            appearAnimating = true
+                        }
+                    }
                 }
-
-                HStack {
-                    Label("도감", systemImage: "book.pages")
-                        .padding(8)
-                        .padding(.horizontal, 8)
-                        .background {
-                            if tabState == .book {
-                                Capsule()
-                                    .fill(
-                                        mainDiver.color.toColor
-                                    )
-                                    .matchedGeometryEffect(
-                                        id: "button",
-                                        in: namespace
-                                    )
-
-                            }
-                        }
-                        .foregroundStyle(
-                            tabState == .book ? .white : .secondary
-                        )
-                        .onTapGesture {
-                            withAnimation {
-                                tabState = .book
-                            }
-                        }
-                    Label("미션", systemImage: "list.bullet.clipboard")
-                        .padding(8)
-                        .padding(.horizontal, 8)
-                        .background {
-                            if tabState == .mission {
-                                Capsule()
-                                    .fill(
-                                        mainDiver.color.toColor
-                                    )
-                                    .matchedGeometryEffect(
-                                        id: "button",
-                                        in: namespace
-                                    )
-
-                            }
-                        }
-                        .foregroundStyle(
-                            tabState == .mission ? .white : .secondary
-                        )
-                        .onTapGesture {
-                            withAnimation {
-                                tabState = .mission
-                            }
-                        }
-                }
-                .font(.callout)
-                .padding(8)
-                .background(.regularMaterial, in: Capsule())
-                .padding(.bottom, 16)
-                .frame(
-                    maxWidth: .infinity,
-                    maxHeight: .infinity,
-                    alignment: .bottom
-                )
-                //                .background {
-                //                    Rectangle()
-                //                        .fill(.ultraThinMaterial)
-                //                        .mask {
-                //                            LinearGradient(
-                //                                stops: [
-                //                                    .init(color: .black, location: 0),
-                //                                    .init(color: .black, location: 0.5),
-                //                                    .init(color: .clear, location: 1),
-                //                                ],
-                //                                startPoint: .bottom,
-                //                                endPoint: .top
-                //                            )
-                //                        }
-                //                }
             }
         }
         .onAppear {
@@ -170,6 +164,8 @@ struct MainView: View {
             )
             let urlQueryItems = urlComponents?.queryItems ?? []
 
+            tabState = .book
+            
             if urlComponents?.host == "open" {
                 guard
                     let idString = urlQueryItems.first(where: {
@@ -185,13 +181,13 @@ struct MainView: View {
                 selectedDiver = diver
             } else if urlComponents?.host == "share" {
                 for item in urlQueryItems {
-                    addNotification(item)
+                    updateDiver(item)
                 }
             }
         }
     }
 
-    func authenticateUser() {
+    private func authenticateUser() {
         GKLocalPlayer.local.authenticateHandler = { vc, error in
             guard error == nil else {
                 print(error?.localizedDescription ?? "")
@@ -200,7 +196,43 @@ struct MainView: View {
         }
     }
 
-    func addNotification(_ item: URLQueryItem) {
+    private func addDiverNotification(_ diver: Diver) {
+        let content = UNMutableNotificationContent()
+        content.title = "DIVER GO"
+        content.body =
+            "\(diver.emoji) \(diver.nickname)을 5일 전에 마지막으로 만났어요."
+        content.sound = UNNotificationSound.default
+
+        let triggerDate = Calendar.current.date(
+            byAdding: .second,
+            value: 5,
+            to: Date()
+        )
+
+        var triggerDateComponents = Calendar.current
+            .dateComponents(
+                [.year, .month, .day],
+                from: triggerDate!
+            )
+
+        triggerDateComponents.hour = 9
+        triggerDateComponents.minute = 0
+
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: triggerDateComponents,
+            repeats: false
+        )
+
+        let request = UNNotificationRequest(
+            identifier: diver.id.uuidString,
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    private func updateDiver(_ item: URLQueryItem) {
         if item.name == "diver" {
             guard
                 let diverData = Data(
@@ -224,6 +256,7 @@ struct MainView: View {
             ) {
                 existingDiver.nickname = diver.nickname
                 existingDiver.emoji = diver.emoji
+                existingDiver.color = diver.color
                 existingDiver.infoList = diver.infoList
                 existingDiver.updatedAt = Date()
 
@@ -237,39 +270,7 @@ struct MainView: View {
 
             selectedDiver = diver
 
-            let content = UNMutableNotificationContent()
-            content.title = "DIVER GO"
-            content.body =
-                "\(diver.emoji) \(diver.nickname)을 5일 전에 마지막으로 만났어요."
-            content.sound = UNNotificationSound.default
-
-            let triggerDate = Calendar.current.date(
-                byAdding: .second,
-                value: 5,
-                to: Date()
-            )
-
-            var triggerDateComponents = Calendar.current
-                .dateComponents(
-                    [.year, .month, .day],
-                    from: triggerDate!
-                )
-
-            triggerDateComponents.hour = 9
-            triggerDateComponents.minute = 0
-
-            let trigger = UNCalendarNotificationTrigger(
-                dateMatching: triggerDateComponents,
-                repeats: false
-            )
-
-            let request = UNNotificationRequest(
-                identifier: diver.id.uuidString,
-                content: content,
-                trigger: trigger
-            )
-
-            UNUserNotificationCenter.current().add(request)
+            addDiverNotification(diver)
         }
     }
 }

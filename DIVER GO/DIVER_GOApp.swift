@@ -24,7 +24,7 @@ struct DIVER_GOApp: App {
                 }
             }
         }
-        GKAccessPoint.shared.location = .topTrailing
+        GKAccessPoint.shared.location = .bottomTrailing
     }
 
     var body: some Scene {

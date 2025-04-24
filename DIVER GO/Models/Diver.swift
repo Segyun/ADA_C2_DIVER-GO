@@ -18,6 +18,11 @@ struct DiverInfo: Identifiable, Codable, Hashable {
         self.title = ""
         self.description = ""
     }
+    
+    init(_ title: String) {
+        self.title = title
+        self.description = ""
+    }
 
     init(title: String, description: String) {
         self.title = title
@@ -38,6 +43,7 @@ struct DiverInfo: Identifiable, Codable, Hashable {
 
     static var defaultInfo: [DiverInfo] {
         [
+            DiverInfo(title: "세션", description: "오전", isRequired: true),
             DiverInfo(title: "관심 분야", description: "", isRequired: true),
             DiverInfo(title: "MBTI", description: "", isRequired: true),
             DiverInfo(
