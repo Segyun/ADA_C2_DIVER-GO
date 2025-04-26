@@ -7,11 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E338421A2DBD033D00BE64F7 /* 개인정보처리방침.md in Resources */ = {isa = PBXBuildFile; fileRef = E33842192DBD033D00BE64F7 /* 개인정보처리방침.md */; };
 		E3AC47842DB9339F001D1677 /* MulticolorGradient in Frameworks */ = {isa = PBXBuildFile; productRef = E3AC47832DB9339F001D1677 /* MulticolorGradient */; };
 		E3AC47902DB9CE87001D1677 /* MCEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = E3AC478F2DB9CE87001D1677 /* MCEmojiPicker */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E33842192DBD033D00BE64F7 /* 개인정보처리방침.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = "개인정보처리방침.md"; path = "DIVER GO/개인정보처리방침.md"; sourceTree = "<group>"; };
 		E38851DD2DAD3A4C00EE477F /* DIVER GO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "DIVER GO.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -39,6 +41,7 @@
 		E38851D42DAD3A4C00EE477F = {
 			isa = PBXGroup;
 			children = (
+				E33842192DBD033D00BE64F7 /* 개인정보처리방침.md */,
 				E38851DF2DAD3A4C00EE477F /* DIVER GO */,
 				E38851DE2DAD3A4C00EE477F /* Products */,
 			);
@@ -161,6 +164,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E338421A2DBD033D00BE64F7 /* 개인정보처리방침.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
