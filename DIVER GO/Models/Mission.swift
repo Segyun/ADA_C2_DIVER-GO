@@ -22,46 +22,9 @@ struct Mission: Identifiable {
 
     var infoTitle: String?
     var infoDescription: String?
+}
 
-    func getMissionCount(_ divers: [Diver]) -> Int {
-        guard
-            let date = Calendar.current.date(
-                from: Calendar.current.dateComponents(
-                    [.year, .month, .day],
-                    from: Date()
-                )
-            )
-        else { return 0 }
-
-        var count = 0
-
-        switch self.category {
-        case .any:
-            count = divers.count { $0.updatedAt > date }
-        case .diver:
-            count = divers
-                .count { $0.nickname == infoDescription && $0.updatedAt > date }
-        case .learningType:
-            count = divers.count {
-                $0.infoList.filter {
-                    $0.title == "관심 분야" && $0.description == infoDescription
-                }.isEmpty == false && $0.updatedAt > date
-            }
-        case .mbti:
-            count = divers.count {
-                $0.infoList.filter {
-                    $0.title == "MBTI" && $0.description == infoDescription
-                }.isEmpty == false && $0.updatedAt > date
-            }
-        }
-
-        if count > self.count {
-            count = self.count
-        }
-
-        return count
-    }
-    
+extension Mission {
     static func diverMission(_ diver: Diver) -> Mission {
         Mission(
             description: "'\(diver.nickname)' 다이버 만나기",
@@ -198,11 +161,43 @@ struct Mission: Identifiable {
     }
 }
 
-extension Array {
-    func stableRandom(using date: Date = Date()) -> Element? {
-        guard !isEmpty else { return nil }
-        let day = Calendar.current.component(.day, from: date)
-        let index = day % count
-        return self[index]
+extension Mission {
+    func getMissionCount(_ divers: [Diver]) -> Int {
+        guard
+            let date = Calendar.current.date(
+                from: Calendar.current.dateComponents(
+                    [.year, .month, .day],
+                    from: Date()
+                )
+            )
+        else { return 0 }
+
+        var count = 0
+
+        switch self.category {
+        case .any:
+            count = divers.count { $0.updatedAt > date }
+        case .diver:
+            count = divers
+                .count { $0.nickname == self.infoDescription && $0.updatedAt > date }
+        case .learningType:
+            count = divers.count {
+                $0.infoList.filter {
+                    $0.title == "관심 분야" && $0.description == self.infoDescription
+                }.isEmpty == false && $0.updatedAt > date
+            }
+        case .mbti:
+            count = divers.count {
+                $0.infoList.filter {
+                    $0.title == "MBTI" && $0.description == self.infoDescription
+                }.isEmpty == false && $0.updatedAt > date
+            }
+        }
+
+        if count > self.count {
+            count = self.count
+        }
+
+        return count
     }
 }

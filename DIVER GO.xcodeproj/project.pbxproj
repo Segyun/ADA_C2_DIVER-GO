@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E3AC47022DB4BBAA001D1677 /* ElegantEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = E3AC47012DB4BBAA001D1677 /* ElegantEmojiPicker */; };
 		E3AC47842DB9339F001D1677 /* MulticolorGradient in Frameworks */ = {isa = PBXBuildFile; productRef = E3AC47832DB9339F001D1677 /* MulticolorGradient */; };
 		E3AC47902DB9CE87001D1677 /* MCEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = E3AC478F2DB9CE87001D1677 /* MCEmojiPicker */; };
 /* End PBXBuildFile section */
@@ -30,7 +29,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E3AC47842DB9339F001D1677 /* MulticolorGradient in Frameworks */,
-				E3AC47022DB4BBAA001D1677 /* ElegantEmojiPicker in Frameworks */,
 				E3AC47902DB9CE87001D1677 /* MCEmojiPicker in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -74,7 +72,6 @@
 			);
 			name = "DIVER GO";
 			packageProductDependencies = (
-				E3AC47012DB4BBAA001D1677 /* ElegantEmojiPicker */,
 				E3AC47832DB9339F001D1677 /* MulticolorGradient */,
 				E3AC478F2DB9CE87001D1677 /* MCEmojiPicker */,
 			);
@@ -146,7 +143,6 @@
 			mainGroup = E38851D42DAD3A4C00EE477F;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				E3AC47002DB4BBAA001D1677 /* XCRemoteSwiftPackageReference "Elegant-Emoji-Picker" */,
 				E3AC47822DB9339F001D1677 /* XCRemoteSwiftPackageReference "SwiftUI-MulticolorGradient" */,
 				E3AC478E2DB9CE87001D1677 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */,
 			);
@@ -322,11 +318,12 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.lemon.DIVER-GO";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -361,11 +358,12 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.lemon.DIVER-GO";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -404,14 +402,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		E3AC47002DB4BBAA001D1677 /* XCRemoteSwiftPackageReference "Elegant-Emoji-Picker" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Finalet/Elegant-Emoji-Picker";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		E3AC47822DB9339F001D1677 /* XCRemoteSwiftPackageReference "SwiftUI-MulticolorGradient" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ArthurGuibert/SwiftUI-MulticolorGradient";
@@ -431,11 +421,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E3AC47012DB4BBAA001D1677 /* ElegantEmojiPicker */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E3AC47002DB4BBAA001D1677 /* XCRemoteSwiftPackageReference "Elegant-Emoji-Picker" */;
-			productName = ElegantEmojiPicker;
-		};
 		E3AC47832DB9339F001D1677 /* MulticolorGradient */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E3AC47822DB9339F001D1677 /* XCRemoteSwiftPackageReference "SwiftUI-MulticolorGradient" */;

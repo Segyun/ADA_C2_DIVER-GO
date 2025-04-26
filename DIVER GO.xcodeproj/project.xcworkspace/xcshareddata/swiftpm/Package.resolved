@@ -1,15 +1,6 @@
 {
-  "originHash" : "e015db53fcd42913d8fc27f60a6b93e1c82a7b43e6d46b89cda28074a2270d10",
+  "originHash" : "7e4ffdae71271a587099a157c39a210944ac9af1e842ed55df9d6d863263ed84",
   "pins" : [
-    {
-      "identity" : "elegant-emoji-picker",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Finalet/Elegant-Emoji-Picker",
-      "state" : {
-        "branch" : "main",
-        "revision" : "daac3cd0a2c29d05f596eb9899e6276910493c02"
-      }
-    },
     {
       "identity" : "mcemojipicker",
       "kind" : "remoteSourceControl",

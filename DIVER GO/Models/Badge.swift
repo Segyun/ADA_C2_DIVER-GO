@@ -7,13 +7,6 @@
 
 import SwiftUI
 
-enum BadgeCategory {
-    case any
-    case diver
-    case mbti
-    case learningType
-}
-
 struct Badge: Identifiable, Hashable {
     var id: String
     var title: String
@@ -24,18 +17,49 @@ struct Badge: Identifiable, Hashable {
 
     var infoTitle: String?
     var infoDescription: String?
-    
+}
+
+extension Badge {
     func isCompleted(_ divers: [Diver]) -> Bool {
         return self.getBadgeCount(divers) >= self.count
     }
-    
-    func strokeColor(_ divers: [Diver]) -> Color {
-        if self.isCompleted(divers) {
-            return .C_1
+
+    func getBadgeCount(_ divers: [Diver]) -> Int {
+        var count = 0
+
+        switch self.category {
+        case .any:
+            count = divers.count
+        case .diver:
+            count =
+                divers
+                    .count { $0.nickname == self.infoDescription }
+        case .learningType:
+            count = divers.count {
+                $0.infoList.filter {
+                    $0.title == "관심 분야"
+                        && $0.description == self.infoDescription
+                }.isEmpty == false
+            }
+        case .mbti:
+            count = divers.count {
+                $0.infoList.filter {
+                    $0.title == "MBTI" && $0.description == self.infoDescription
+                }.isEmpty == false
+            }
         }
-        return .C_3
+
+        if count > self.count {
+            count = self.count
+        }
+
+        return count
     }
-    
+}
+
+// MARK: - 기본 배지
+
+extension Badge {
     static var badges: [Badge] {
         [
             Badge(
@@ -68,7 +92,7 @@ struct Badge: Identifiable, Hashable {
                 description: "다이버 100명 만나기",
                 category: .any,
                 count: 100,
-                tintColor: .C_2
+                tintColor: .cyan
             ),
             Badge(
                 id: "com.lemon.achievement.infj_collector",
@@ -229,37 +253,7 @@ struct Badge: Identifiable, Hashable {
                 tintColor: .teal,
                 infoTitle: "MBTI",
                 infoDescription: "ESTP"
-            )
+            ),
         ]
-    }
-    
-    func getBadgeCount(_ divers: [Diver]) -> Int {
-        var count = 0
-
-        switch self.category {
-        case .any:
-            count = divers.count
-        case .diver:
-            count = divers
-                .count { $0.nickname == infoDescription }
-        case .learningType:
-            count = divers.count {
-                $0.infoList.filter {
-                    $0.title == "관심 분야" && $0.description == infoDescription
-                }.isEmpty == false
-            }
-        case .mbti:
-            count = divers.count {
-                $0.infoList.filter {
-                    $0.title == "MBTI" && $0.description == infoDescription
-                }.isEmpty == false
-            }
-        }
-
-        if count > self.count {
-            count = self.count
-        }
-
-        return count
     }
 }

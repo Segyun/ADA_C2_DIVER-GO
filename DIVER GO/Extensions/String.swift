@@ -8,6 +8,8 @@
 import Foundation
 
 extension String {
+    /// 문자열을 Date로 변환합니다.
+    /// - Returns: 변환된 Date 객체
     func toDate() -> Date? {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy년 MM월 dd일 HH시 mm분"
