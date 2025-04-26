@@ -21,7 +21,7 @@ struct MissionsTabView: View {
             GradientBackground(color: mainDiver.color.toColor)
 
             ScrollView {
-                LazyVStack {
+                VStack {
                     TitleView(title: "Today's Missions")
 
                     MissionListView(

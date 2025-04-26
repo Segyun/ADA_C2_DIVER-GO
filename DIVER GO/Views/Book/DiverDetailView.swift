@@ -122,6 +122,23 @@ struct DiverCardDetailView: View {
                                 SecondaryButtonStyle(color: diver.color.toColor)
                             )
                         }
+                        if isEditAvailable {
+                            VStack {
+                                Text("\(diver.createdAt.lastDays())일 전 만들어졌어요.")
+                                Text("\(diver.updatedAt.lastDays())일 전 수정되었어요.")
+                            }
+                            .font(.footnote)
+                            .glassOpacity()
+                            .padding()
+                        } else {
+                            VStack {
+                                Text("\(diver.createdAt.lastDays())일 전 처음 만났어요.")
+                                Text("\(diver.updatedAt.lastDays())일 전 마지막으로 만났어요.")
+                            }
+                            .font(.footnote)
+                            .glassOpacity()
+                            .padding()
+                        }
                     }
                 }
                 .padding()
@@ -134,7 +151,9 @@ struct DiverCardDetailView: View {
                     if isEditAvailable {
                         EditButton
                     }
-                    DismissButton()
+                    if !isEditing {
+                        DismissButton()
+                    }
                 }
                 .frame(
                     maxWidth: .infinity,
@@ -201,7 +220,7 @@ struct DiverCardDetailView: View {
 
 #Preview {
     @Previewable @State var diver = Diver.builtin
-    @Previewable @State var isEditing = true
+    @Previewable @State var isEditing = false
 
     return DiverCardDetailView(
         diver: diver,

@@ -139,6 +139,7 @@ struct MainView: View {
         .padding(8)
         .background(.regularMaterial, in: Capsule())
         .padding(.top, 40)
+        .padding(.bottom, 20)
         .frame(
             maxWidth: .infinity)
         .background {
@@ -154,6 +155,10 @@ struct MainView: View {
         Label("도감", systemImage: "book.pages")
             .padding(8)
             .padding(.horizontal, 8)
+            .foregroundStyle(
+                tabState == .book ? mainDiver.color.toColor
+                    .adaptedTextColor() : .secondary
+            )
             .background {
                 if tabState == .book {
                     Capsule()
@@ -166,9 +171,6 @@ struct MainView: View {
                         )
                 }
             }
-            .foregroundStyle(
-                tabState == .book ? .white : .secondary
-            )
             .onTapGesture {
                 withAnimation {
                     tabState = .book
@@ -180,6 +182,10 @@ struct MainView: View {
         Label("미션", systemImage: "list.bullet.clipboard")
             .padding(8)
             .padding(.horizontal, 8)
+            .foregroundStyle(
+                tabState == .mission ? mainDiver.color.toColor
+                    .adaptedTextColor() : .secondary
+            )
             .background {
                 if tabState == .mission {
                     Capsule()
@@ -192,9 +198,6 @@ struct MainView: View {
                         )
                 }
             }
-            .foregroundStyle(
-                tabState == .mission ? .white : .secondary
-            )
             .onTapGesture {
                 withAnimation {
                     tabState = .mission
