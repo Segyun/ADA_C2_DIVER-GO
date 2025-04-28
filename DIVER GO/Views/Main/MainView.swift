@@ -27,7 +27,6 @@ struct MainView: View {
     @State private var mainDiver = Diver()
     @State private var selectedDiver: Diver?
     @State private var tabState: TabState = .book
-    @State private var appearAnimating = false
 
     var body: some View {
         NavigationStack {
@@ -47,34 +46,29 @@ struct MainView: View {
                                 mainDiver: $mainDiver,
                                 selectedDiver: $selectedDiver
                             )
-                            .transition(.opacity)
                         case .mission:
                             MissionsTabView(
                                 namespace: namespace,
                                 mainDiver: mainDiver,
                                 divers: divers.filter { $0.id != mainDiver.id }
                             )
-                            .transition(.opacity)
                         }
 
                         TabBar
                     }
-                    .opacity(appearAnimating ? 1 : 0)
-                    .onAppear {
-                        withAnimation {
-                            appearAnimating = true
-                        }
-                    }
+                    .transition(.opacity)
                 }
             }
+            .animation(.easeInOut, value: onboardingState)
         }
         .onAppear {
             requestUserNotificationPermission()
 
-            if let mainDiverID, let diver = divers.first(
-                where: {
-                    $0.id.uuidString == mainDiverID
-                })
+            if let mainDiverID,
+               let diver = divers.first(
+                   where: {
+                       $0.id.uuidString == mainDiverID
+                   })
             {
                 mainDiver = diver
             } else {
@@ -119,6 +113,7 @@ struct MainView: View {
                         }
 
                         updateDiver(&diver)
+                        updateAchievements()
                     }
                 }
             }
@@ -141,7 +136,8 @@ struct MainView: View {
         .padding(.top, 40)
         .padding(.bottom, 20)
         .frame(
-            maxWidth: .infinity)
+            maxWidth: .infinity
+        )
         .background {
             FadingBackground()
         }
@@ -156,7 +152,8 @@ struct MainView: View {
             .padding(8)
             .padding(.horizontal, 8)
             .foregroundStyle(
-                tabState == .book ? mainDiver.color.toColor
+                tabState == .book
+                    ? mainDiver.color.toColor
                     .adaptedTextColor() : .secondary
             )
             .background {
@@ -183,7 +180,8 @@ struct MainView: View {
             .padding(8)
             .padding(.horizontal, 8)
             .foregroundStyle(
-                tabState == .mission ? mainDiver.color.toColor
+                tabState == .mission
+                    ? mainDiver.color.toColor
                     .adaptedTextColor() : .secondary
             )
             .background {
@@ -301,6 +299,24 @@ struct MainView: View {
         selectedDiver = diver
 
         addDiverNotification(diver)
+    }
+
+    /// Game Center 업적을 업데이트합니다.
+    private func updateAchievements() {
+        let badges = Badge.badges
+
+        for badge in badges {
+            if badge.isCompleted(divers.filter { $0.id != mainDiver.id }) {
+                let achievement = GKAchievement(identifier: badge.id)
+                achievement.percentComplete = 100
+                GKAchievement.report([achievement]) { error in
+                    if let error {
+                        print("Error reporting achievement: \(error)")
+                    }
+                }
+                print("Achievement \(badge.title) completed.")
+            }
+        }
     }
 }
 

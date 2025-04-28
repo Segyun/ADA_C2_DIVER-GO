@@ -5,18 +5,17 @@
 //  Created by 정희균 on 4/26/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct DiverListView: View {
-    
     let namespace: Namespace.ID
     @Binding var mainDiver: Diver
     @Binding var selectedDiver: Diver?
 
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Diver.updatedAt, order: .reverse) private var divers: [Diver]
-    
+
     var body: some View {
         ScrollView {
             LazyVGrid(columns: Array(repeating: GridItem(), count: 3)) {
@@ -47,11 +46,12 @@ struct DiverListView: View {
                 }
             }
             .compositingGroup()
-            .shadow(color: .gray.opacity(0.2), radius: 8)
+            .glassShadow()
             .padding()
-            .padding(.top, 80)
-            .padding(.bottom, 80)
+            .padding(.vertical, 80)
+            .padding(.bottom, 32)
         }
+        .scrollIndicators(.hidden)
     }
 }
 

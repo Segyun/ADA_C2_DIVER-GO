@@ -270,5 +270,12 @@ struct DiverInfoRowView: View {
             .regularMaterial,
             in: RoundedRectangle(cornerRadius: 20)
         )
+        .contextMenu {
+            Button {
+                UIPasteboard.general.string = info.description
+            } label: {
+                Label("복사하기", systemImage: "document.on.document")
+            }
+        }
     }
 }

@@ -15,23 +15,36 @@ struct BadgeCardView: View {
     var body: some View {
         VStack {
             ZStack {
-                Image(.badge)
-                    .resizable()
-                    .interpolation(.high)
-                    .scaledToFit()
-                    .grayscale(1)
-                    .colorMultiply(badge.tintColor)
-                    .padding(.bottom)
-
-                if badge.category == .mbti,
-                   let mbti = badge.infoDescription
-                {
-                    Text(mbti)
-                        .font(.system(size: 20, design: .rounded))
-                        .bold()
-                        .foregroundStyle(badge.tintColor)
-                        .opacity(0.5)
-                        .offset(y: 12)
+                if isCompleted {
+                    Image(.badge)
+                        .resizable()
+                        .interpolation(.high)
+                        .scaledToFit()
+                        .grayscale(1)
+                        .colorMultiply(badge.tintColor)
+                        .padding(.bottom)
+                    
+                    if badge.category == .mbti,
+                       let mbti = badge.infoDescription
+                    {
+                        Text(mbti)
+                            .font(.system(size: 20, design: .rounded))
+                            .bold()
+                            .foregroundStyle(badge.tintColor)
+                            .opacity(0.5)
+                            .offset(y: 12)
+                    }
+                } else {
+                    Circle()
+                        .fill(.regularMaterial)
+                        .overlay {
+                            Image(systemName: "lock.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .scaleEffect(1/3)
+                                .glassOpacity()
+                        }
+                        .padding(.bottom)
                 }
             }
             .brightness(0.15)
@@ -53,13 +66,7 @@ struct BadgeCardView: View {
         .frame(maxWidth: .infinity)
         .background {
             VStack(spacing: 0) {
-                Circle()
-                    .fill(badge.tintColor)
-                    .frame(width: 48)
-                    .offset(y: -40)
-            }
-            VStack(spacing: 0) {
-                Color.clear
+                badge.tintColor.opacity(0.3)
                 Color(.systemBackground).opacity(0.8)
             }
             Rectangle()

@@ -41,6 +41,7 @@ struct MissionsTabView: View {
                 .shadow(color: .gray.opacity(0.2), radius: 8)
                 .padding()
                 .padding(.vertical, 80)
+                .padding(.bottom, 32)
             }
             .scrollIndicators(.hidden)
 

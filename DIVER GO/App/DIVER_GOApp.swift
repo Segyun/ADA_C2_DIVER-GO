@@ -14,8 +14,21 @@ import UserNotifications
 @main
 struct DIVER_GOApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-
+    private let container: ModelContainer
+    
     init() {
+        let modelConfiguration = ModelConfiguration(cloudKitDatabase: .none)
+//        let modelConfiguration = ModelConfiguration(cloudKitDatabase: .private("iCloud.divergo.lemon.com.Diver"))
+        
+        do {
+            container = try ModelContainer(
+                for: Diver.self,
+                configurations: modelConfiguration
+            )
+        } catch {
+            fatalError("Failed to initialize ModelContainer: \(error)")
+        }
+        
         if !GKLocalPlayer.local.isAuthenticated {
             GKLocalPlayer.local.authenticateHandler = { _, error in
                 guard error == nil else {
@@ -31,7 +44,7 @@ struct DIVER_GOApp: App {
         WindowGroup {
             MainView()
         }
-        .modelContainer(for: Diver.self)
+        .modelContainer(container)
     }
 }
 

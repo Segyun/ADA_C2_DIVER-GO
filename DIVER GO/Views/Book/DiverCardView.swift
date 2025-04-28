@@ -13,7 +13,7 @@ struct DiverCardView: View {
     var body: some View {
         VStack {
             Circle()
-                .fill(.ultraThickMaterial)
+                .fill(.regularMaterial)
                 .frame(width: 72)
                 .overlay {
                     if diver.emoji.isEmpty {
@@ -58,17 +58,11 @@ struct DiverCardView: View {
         .frame(maxWidth: .infinity)
         .background {
             VStack(spacing: 0) {
-                Circle()
-                    .fill(diver.color.toColor)
-                    .frame(width: 48)
-                    .offset(y: -40)
-            }
-            VStack(spacing: 0) {
-                Color.clear
+                diver.color.toColor.opacity(0.3)
                 Color(.systemBackground).opacity(0.8)
             }
             Rectangle()
-                .fill(.regularMaterial)
+                .fill(.thinMaterial)
         }
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }

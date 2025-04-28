@@ -38,7 +38,7 @@ struct MissionCardView: View {
         .frame(maxWidth: .infinity)
         .background {
             Rectangle()
-                .fill(.thinMaterial)
+                .fill(.regularMaterial)
         }
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }

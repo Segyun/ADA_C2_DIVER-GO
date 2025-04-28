@@ -11,8 +11,8 @@ import SwiftUI
 @Model
 class Diver: Codable {
     var id = UUID()
-    var nickname: String
-    var emoji: String
+    var nickname: String = ""
+    var emoji: String = ""
     var color: DiverColor = DiverColor.yellow
     var infoList: [DiverInfo] = []
     var createdAt: Date = Date()

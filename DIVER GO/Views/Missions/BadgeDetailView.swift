@@ -21,7 +21,11 @@ struct BadgeDetailView: View {
             BadgeDetailBackground
 
             VStack {
-                BadgeImageView
+                if badge.isCompleted(divers) {
+                    BadgeImageView
+                } else {
+                    IncompleteBadgeView
+                }
 
                 Text(badge.title)
                     .font(.headline)
@@ -36,12 +40,12 @@ struct BadgeDetailView: View {
             .glassOpacity()
 
             DismissButton()
-            .frame(
-                maxWidth: .infinity,
-                maxHeight: .infinity,
-                alignment: .topTrailing
-            )
-            .padding()
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity,
+                    alignment: .topTrailing
+                )
+                .padding()
         }
         .onAppear {
             withAnimation(.linear(duration: 0.5)) {
@@ -66,21 +70,21 @@ struct BadgeDetailView: View {
 
     private var BadgeImageView: some View {
         ZStack {
-            Image(.badge)
-                .resizable()
-                .interpolation(.high)
-                .scaledToFit()
-                .grayscale(1)
-                .colorMultiply(badge.tintColor)
-                .brightness(0.15)
-            if badge.category == .mbti {
-                Text(badge.infoDescription ?? "")
-                    .font(.system(size: 64, design: .rounded))
-                    .bold()
-                    .foregroundStyle(badge.tintColor)
-                    .opacity(0.7)
-                    .offset(y: 48)
-            }
+                Image(.badge)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .grayscale(1)
+                    .colorMultiply(badge.tintColor)
+                    .brightness(0.15)
+                if badge.category == .mbti {
+                    Text(badge.infoDescription ?? "")
+                        .font(.system(size: 64, design: .rounded))
+                        .bold()
+                        .foregroundStyle(badge.tintColor)
+                        .opacity(0.7)
+                        .offset(y: 48)
+                }
         }
         .frame(width: 250)
         .rotation3DEffect(
@@ -101,6 +105,64 @@ struct BadgeDetailView: View {
         .padding()
         .matchedGeometryEffect(id: badge.id, in: namespace)
     }
+    
+    private var IncompleteBadgeView: some View {
+        Circle()
+            .fill(.regularMaterial)
+            .overlay {
+                Image(systemName: "lock.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .scaleEffect(1/3)
+                    .glassOpacity()
+            }
+            .frame(width: 250)
+            .padding()
+    }
+
+//    배지 이미지 추출
+//    @State private var image: Image?
+//
+//    private var BadgeShareView: some View {
+//        ShareLink(
+//            item: image ?? Image(.badge),
+//            preview: SharePreview(badge.title)
+//        ) {
+//            Image(systemName: "square.and.arrow.up")
+//                .foregroundStyle(.white)
+//                .padding(8)
+//                .background(.regularMaterial, in: Circle())
+//                .padding()
+//        }
+//        .onAppear {
+//            let renderer = ImageRenderer(
+//                content: ZStack {
+//                    Image(.badge)
+//                        .resizable()
+//                        .interpolation(.high)
+//                        .scaledToFit()
+//                        .grayscale(1)
+//                        .colorMultiply(badge.tintColor)
+//                        .brightness(0.15)
+//                    if badge.category == .mbti {
+//                        Text(badge.infoDescription ?? "")
+//                            .font(.system(size: 64, design: .rounded))
+//                            .bold()
+//                            .foregroundStyle(badge.tintColor)
+//                            .opacity(0.7)
+//                            .offset(y: 48)
+//                    }
+//                }
+//                .frame(width: 250)
+//            )
+//
+//            renderer.scale = 4
+//
+//            if let renderedImage = renderer.uiImage {
+//                image = Image(uiImage: renderedImage)
+//            }
+//        }
+//    }
 }
 
 #Preview {

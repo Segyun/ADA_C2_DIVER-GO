@@ -13,7 +13,7 @@ struct OnboardingView: View {
     @Binding var mainDiver: Diver
 
     @State private var currentPage: OnboardingPage = .intro
-    
+
     // 온보딩 페이지
     private enum OnboardingPage {
         case intro
@@ -104,10 +104,9 @@ struct OnboardingView: View {
 
     private var OutroView: some View {
         VStack {
-            Group {
-                Text("홈화면에서 AirDrop으로 공유해보세요.")
-            }
-            .font(.headline)
+            Text("홈화면에서 AirDrop으로 공유해보세요.")
+                .font(.headline)
+                .glassOpacity()
 
             VStack(spacing: 10) {
                 VideoPlayer(player: player)
